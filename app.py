@@ -302,8 +302,84 @@ def main():
     st.markdown('<h1 class="main-header">ReRisk AI: Catastrophe Re-Pricing Tool</h1>', 
                 unsafe_allow_html=True)
     
+    # Information Section
+    with st.expander("ℹ️ About ReRisk AI - Click to expand", expanded=False):
+        st.markdown("""
+        ### What is ReRisk AI?
+        ReRisk AI is an advanced catastrophe risk forecasting tool designed for reinsurance professionals. 
+        It uses machine learning models to predict expected losses, calculate risk metrics, and suggest 
+        optimal reinsurance premiums for natural catastrophes like hurricanes and earthquakes.
+        
+        ### Key Features:
+        - **Machine Learning Models**: XGBoost classification and Random Forest regression
+        - **Risk Calculations**: Value at Risk (VaR), Expected Shortfall (ES), and optimal premiums
+        - **Monte Carlo Simulations**: 1,000-run simulations for robust risk assessment
+        - **Geographic Analysis**: Interactive maps showing regional risk exposure
+        - **Model Explainability**: SHAP values for transparent decision-making
+        - **Climate Scenarios**: What-if analysis for climate change impacts
+        
+        ### How to Use:
+        1. **Configure Portfolio**: Set attachment points, portfolio size, and primary region
+        2. **Adjust Parameters**: Modify climate amplification and cede rates as needed
+        3. **Analyze Results**: Review predicted losses, risk metrics, and suggested premiums
+        4. **Interpret Visualizations**: Use maps and charts to understand risk distribution
+        
+        ### Understanding the Results:
+        - **Predicted Annual Loss**: Expected reinsurance losses based on historical data
+        - **VaR (99%)**: Maximum loss with 99% confidence (1% chance of exceeding)
+        - **Expected Shortfall**: Average loss above VaR threshold
+        - **Suggested Premium**: Optimal reinsurance premium with loading factors
+        - **Risk Level**: HIGH RISK (VaR > $5M) or LOW RISK (VaR ≤ $5M)
+        """)
+        
+        st.markdown("### Methodology:")
+        st.markdown("""
+        **Data Sources**: 5,000+ insurance records with regional catastrophe exposure data
+        
+        **Machine Learning Pipeline**:
+        1. **Feature Engineering**: Risk scores, ceded losses, catastrophe exposure multipliers
+        2. **Model Training**: XGBoost for high-risk classification, Random Forest for loss prediction
+        3. **Risk Simulation**: Monte Carlo analysis with 1,000 iterations
+        4. **Premium Calculation**: Loss prediction × (1 + expense ratio + profit margin)
+        
+        **Regional Risk Factors**:
+        - **South/Southeast**: High hurricane exposure (1.4-1.5x multiplier)
+        - **Northwest**: Earthquake risk (0.8x multiplier)
+        - **Northeast**: Lower risk (1.0x multiplier)
+        - **Southwest**: Moderate risk (1.2x multiplier)
+        """)
+        
+        st.markdown("### Disclaimer:")
+        st.markdown("""
+        This tool is for demonstration and educational purposes. Results should not be used 
+        for actual reinsurance pricing without proper validation and additional data. 
+        Always consult with qualified actuaries and risk professionals for real-world applications.
+        """)
+    
     # Sidebar controls
     st.sidebar.header("Portfolio Configuration")
+    
+    # Quick Reference
+    with st.sidebar.expander("📋 Quick Reference", expanded=False):
+        st.markdown("""
+        **Risk Metrics:**
+        - VaR (99%): Maximum loss with 99% confidence
+        - ES: Average loss above VaR threshold
+        - Premium: Loss × (1 + 60% loading)
+        
+        **Regions:**
+        - South: High hurricane risk
+        - Southeast: High hurricane risk  
+        - Northwest: Earthquake risk
+        - Northeast: Lower risk
+        - Southwest: Moderate risk
+        
+        **Parameters:**
+        - Attachment Point: Minimum loss threshold
+        - Portfolio Size: Total exposure value
+        - Climate Amp: Hurricane intensity increase
+        - Cede Rate: Percentage ceded to reinsurer
+        """)
     
     attachment_point = st.sidebar.slider(
         "Attachment Point ($M)", 
