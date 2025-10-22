@@ -1,0 +1,5 @@
+region,cat_exposure,hurricane_frequency,avg_intensity
+north,1.0,0.1,2.5
+south,1.5,0.8,3.8
+east,1.2,0.3,3.2
+west,1.1,0.2,2.8
