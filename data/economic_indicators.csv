@@ -1,0 +1,6 @@
+region,gdp_per_capita,population_density,property_values,inflation_rate,unemployment_rate
+northeast,65000,400,350000,2.5,4.5
+southeast,45000,150,200000,3.2,5.2
+northwest,55000,50,300000,2.8,4.8
+southwest,50000,80,250000,3.0,5.0
+south,40000,200,180000,3.5,5.8

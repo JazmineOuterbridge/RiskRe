@@ -1,6 +1,6 @@
-region,cat_exposure,hurricane_frequency,avg_intensity
-northeast,1.0,0.1,2.5
-south,1.5,0.8,3.8
-southeast,1.4,0.7,3.6
-northwest,1.1,0.2,2.8
-southwest,1.2,0.3,3.0
+region,cat_exposure,hurricane_frequency,avg_intensity,flood_risk,wind_risk,earthquake_risk
+northeast,1.0,0.1,2.5,0.3,0.2,0.1
+southeast,1.4,0.7,3.6,0.8,0.9,0.2
+northwest,1.1,0.2,2.8,0.4,0.3,0.8
+southwest,1.2,0.3,3.0,0.5,0.4,0.6
+south,1.5,0.8,3.8,0.9,0.95,0.3
