@@ -467,28 +467,59 @@ def main():
     
     # Historical vs Predicted comparison
     st.markdown("### Historical vs Predicted Losses")
-    historical_losses = df_filtered['ceded_loss'].values
-    predicted_losses = np.full_like(historical_losses, predicted_loss)
-    
-    fig_comparison = go.Figure()
-    fig_comparison.add_trace(go.Scatter(
-        y=historical_losses/1000000,
-        mode='markers',
-        name='Historical',
-        marker=dict(color='blue', opacity=0.6)
-    ))
-    fig_comparison.add_trace(go.Scatter(
-        y=predicted_losses/1000000,
-        mode='markers',
-        name='Predicted',
-        marker=dict(color='red', opacity=0.6)
-    ))
-    fig_comparison.update_layout(
-        title="Historical vs Predicted Losses",
-        xaxis_title="Sample Index",
-        yaxis_title="Loss ($M)"
-    )
-    st.plotly_chart(fig_comparison, use_container_width=True)
+    try:
+        # Use ceded_loss from the processed dataframe
+        historical_losses = df_processed['ceded_loss'].values
+        predicted_losses = np.full_like(historical_losses, predicted_loss)
+        
+        fig_comparison = go.Figure()
+        fig_comparison.add_trace(go.Scatter(
+            y=historical_losses/1000000,
+            mode='markers',
+            name='Historical',
+            marker=dict(color='blue', opacity=0.6)
+        ))
+        fig_comparison.add_trace(go.Scatter(
+            y=predicted_losses/1000000,
+            mode='markers',
+            name='Predicted',
+            marker=dict(color='red', opacity=0.6)
+        ))
+        fig_comparison.update_layout(
+            title="Historical vs Predicted Losses",
+            xaxis_title="Sample Index",
+            yaxis_title="Loss ($M)"
+        )
+        st.plotly_chart(fig_comparison, use_container_width=True)
+        
+    except Exception as e:
+        st.warning(f"Could not create historical vs predicted comparison: {str(e)}")
+        # Create a simple comparison with available data
+        if 'ceded_loss' in df_processed.columns:
+            historical_losses = df_processed['ceded_loss'].values
+            predicted_losses = np.full_like(historical_losses, predicted_loss)
+            
+            fig_comparison = go.Figure()
+            fig_comparison.add_trace(go.Scatter(
+                y=historical_losses/1000000,
+                mode='markers',
+                name='Historical',
+                marker=dict(color='blue', opacity=0.6)
+            ))
+            fig_comparison.add_trace(go.Scatter(
+                y=predicted_losses/1000000,
+                mode='markers',
+                name='Predicted',
+                marker=dict(color='red', opacity=0.6)
+            ))
+            fig_comparison.update_layout(
+                title="Historical vs Predicted Losses",
+                xaxis_title="Sample Index",
+                yaxis_title="Loss ($M)"
+            )
+            st.plotly_chart(fig_comparison, use_container_width=True)
+        else:
+            st.info("Historical comparison data not available. This is normal for new regions or limited data.")
     
     # Footer
     st.markdown("---")
