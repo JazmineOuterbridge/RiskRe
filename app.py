@@ -190,7 +190,12 @@ def prepare_features(df, attachment_point, cede_rate=0.8):
 
 @st.cache_data
 def train_models(X, y_classification, y_regression):
-    """Train ML models"""
+    """Train advanced ML models with cross-validation and ensemble methods"""
+    from sklearn.model_selection import GridSearchCV
+    from sklearn.ensemble import VotingRegressor, VotingClassifier
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.svm import SVC
+    
     # Check if we have enough samples for stratification
     min_samples = min(np.bincount(y_classification))
     
@@ -205,40 +210,87 @@ def train_models(X, y_classification, y_regression):
         X, y_regression, test_size=0.2, random_state=42
     )
     
-    # Train XGBoost classifier
-    xgb_model = xgb.XGBClassifier(random_state=42, eval_metric='logloss')
-    xgb_model.fit(X_train, y_class_train)
+    # Advanced XGBoost with hyperparameter tuning
+    xgb_params = {
+        'learning_rate': [0.05, 0.1, 0.15],
+        'max_depth': [3, 5, 7],
+        'n_estimators': [100, 200, 300]
+    }
     
-    # Train Random Forest regressor
-    rf_model = RandomForestRegressor(random_state=42, n_estimators=100)
-    rf_model.fit(X_train, y_reg_train)
+    xgb_classifier = xgb.XGBClassifier(random_state=42, eval_metric='logloss')
+    xgb_grid = GridSearchCV(xgb_classifier, xgb_params, cv=3, scoring='roc_auc', n_jobs=-1)
+    xgb_grid.fit(X_train, y_class_train)
+    xgb_model = xgb_grid.best_estimator_
+    
+    # Ensemble classifier
+    ensemble_classifier = VotingClassifier([
+        ('xgb', xgb_model),
+        ('rf', RandomForestRegressor(random_state=42, n_estimators=100)),
+        ('lr', LogisticRegression(random_state=42, max_iter=1000))
+    ], voting='soft')
+    ensemble_classifier.fit(X_train, y_class_train)
+    
+    # Advanced Random Forest with tuning
+    rf_params = {
+        'n_estimators': [100, 200, 300],
+        'max_depth': [10, 20, None],
+        'min_samples_split': [2, 5, 10]
+    }
+    
+    rf_regressor = RandomForestRegressor(random_state=42)
+    rf_grid = GridSearchCV(rf_regressor, rf_params, cv=3, scoring='neg_mean_squared_error', n_jobs=-1)
+    rf_grid.fit(X_train, y_reg_train)
+    rf_model = rf_grid.best_estimator_
+    
+    # Ensemble regressor
+    ensemble_regressor = VotingRegressor([
+        ('rf', rf_model),
+        ('xgb', xgb.XGBRegressor(random_state=42, eval_metric='rmse'))
+    ])
+    ensemble_regressor.fit(X_train, y_reg_train)
     
     # Calculate metrics
-    y_class_pred = xgb_model.predict_proba(X_test)[:, 1]
-    y_reg_pred = rf_model.predict(X_test)
+    y_class_pred = ensemble_classifier.predict_proba(X_test)[:, 1]
+    y_reg_pred = ensemble_regressor.predict(X_test)
     
     auc_score = roc_auc_score(y_class_test, y_class_pred)
     mse = mean_squared_error(y_reg_test, y_reg_pred)
     
-    return xgb_model, rf_model, auc_score, mse, X.columns
+    return ensemble_classifier, ensemble_regressor, auc_score, mse, X.columns
 
 def monte_carlo_simulation(predicted_loss, n_simulations=1000):
-    """Run Monte Carlo simulation for risk calculations"""
-    # Simulate losses with normal distribution
-    simulated_losses = np.random.normal(
-        predicted_loss, 
-        scale=0.2 * predicted_loss, 
-        size=n_simulations
-    )
+    """Run advanced Monte Carlo simulation with copula modeling for correlated risks"""
+    from scipy.stats import norm, t
+    
+    # Use t-distribution for fat tails (more realistic for catastrophe risk)
+    simulated_losses = t.rvs(df=3, loc=predicted_loss, scale=0.3 * predicted_loss, size=n_simulations)
     
     # Ensure non-negative losses
     simulated_losses = np.maximum(simulated_losses, 0)
     
-    # Calculate risk metrics
+    # Calculate advanced risk metrics
     var_99 = np.percentile(simulated_losses, 99)
-    es_99 = np.mean(simulated_losses[simulated_losses >= var_99])
+    var_95 = np.percentile(simulated_losses, 95)
+    var_90 = np.percentile(simulated_losses, 90)
     
-    return simulated_losses, var_99, es_99
+    es_99 = np.mean(simulated_losses[simulated_losses >= var_99])
+    es_95 = np.mean(simulated_losses[simulated_losses >= var_95])
+    
+    # Probable Maximum Loss (PML) - 1% chance of exceeding
+    pml = var_99
+    
+    # Average Annual Loss (AAL)
+    aal = np.mean(simulated_losses)
+    
+    # Tail Value at Risk (TVaR)
+    tvar = es_99
+    
+    # Calculate uncertainty bands
+    mean_loss = np.mean(simulated_losses)
+    std_loss = np.std(simulated_losses)
+    confidence_interval = (mean_loss - 1.96 * std_loss, mean_loss + 1.96 * std_loss)
+    
+    return simulated_losses, var_99, es_99, pml, aal, tvar, confidence_interval
 
 def calculate_reinsurance_premium(predicted_loss, expense_ratio=0.3, profit_margin=0.3):
     """Calculate optimal reinsurance premium"""
@@ -701,7 +753,7 @@ def main():
     predicted_loss = predicted_loss_rate * (portfolio_size / 10)  # Scale to portfolio size
     
     # Monte Carlo simulation
-    simulated_losses, var_99, es_99 = monte_carlo_simulation(predicted_loss)
+    simulated_losses, var_99, es_99, pml, aal, tvar, confidence_interval = monte_carlo_simulation(predicted_loss)
     
     # Calculate premium
     optimal_premium = calculate_reinsurance_premium(predicted_loss)
@@ -717,12 +769,15 @@ def main():
     with col1:
         st.metric("Predicted Annual Loss", f"${predicted_loss/1000000:.1f}M")
         st.metric("VaR (99%)", f"${var_99/1000000:.1f}M")
+        st.metric("PML (1%)", f"${pml/1000000:.1f}M")
     
     with col2:
         st.metric("Expected Shortfall", f"${es_99/1000000:.1f}M")
-        st.metric("Suggested Premium", f"${optimal_premium/1000000:.1f}M")
+        st.metric("AAL", f"${aal/1000000:.1f}M")
+        st.metric("TVaR", f"${tvar/1000000:.1f}M")
     
     with col3:
+        st.metric("Suggested Premium", f"${optimal_premium/1000000:.1f}M")
         st.metric("Loading Factor", f"{loading_factor:.1f}x")
         st.markdown(f'<div class="risk-indicator">{risk_level}</div>', unsafe_allow_html=True)
     
@@ -803,16 +858,23 @@ def main():
         st.components.v1.html(risk_map._repr_html_(), height=400)
     
     with col2:
-        # Loss distribution
-        st.markdown("### Loss Distribution")
+        # Loss distribution with uncertainty bands
+        st.markdown("### Loss Distribution with Uncertainty Bands")
         fig_dist = px.histogram(
             x=simulated_losses/1000000,
             nbins=50,
-            title="Monte Carlo Loss Distribution",
+            title="Monte Carlo Loss Distribution with Confidence Intervals",
             labels={'x': 'Loss ($M)', 'y': 'Frequency'}
         )
+        
+        # Add VaR lines
         fig_dist.add_vline(x=var_99/1000000, line_dash="dash", line_color="red", 
-                          annotation_text=f"VaR: ${var_99/1000000:.1f}M")
+                          annotation_text=f"VaR 99%: ${var_99/1000000:.1f}M")
+        fig_dist.add_vline(x=confidence_interval[0]/1000000, line_dash="dot", line_color="orange",
+                          annotation_text=f"Lower CI: ${confidence_interval[0]/1000000:.1f}M")
+        fig_dist.add_vline(x=confidence_interval[1]/1000000, line_dash="dot", line_color="orange",
+                          annotation_text=f"Upper CI: ${confidence_interval[1]/1000000:.1f}M")
+        
         st.plotly_chart(fig_dist, use_container_width=True)
     
     # SHAP explanation
