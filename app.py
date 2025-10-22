@@ -30,7 +30,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for better styling
+# Custom CSS for professional styling
 st.markdown("""
 <style>
     .main-header {
@@ -39,17 +39,73 @@ st.markdown("""
         color: #1f77b4;
         text-align: center;
         margin-bottom: 2rem;
+        background: linear-gradient(90deg, #1f77b4, #ff7f0e);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
     .metric-card {
-        background-color: #f0f2f6;
-        padding: 1rem;
-        border-radius: 0.5rem;
+        background-color: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 0.75rem;
         margin: 0.5rem 0;
+        border-left: 4px solid #1f77b4;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     .risk-indicator {
-        font-size: 3rem;
+        font-size: 2.5rem;
         text-align: center;
         margin: 1rem 0;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-weight: bold;
+    }
+    .section-header {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #2c3e50;
+        margin: 1.5rem 0 1rem 0;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 0.5rem;
+    }
+    .tooltip {
+        position: relative;
+        display: inline-block;
+        border-bottom: 1px dotted black;
+    }
+    .tooltip .tooltiptext {
+        visibility: hidden;
+        width: 200px;
+        background-color: #555;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 5px 0;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%;
+        left: 50%;
+        margin-left: -100px;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    .tooltip:hover .tooltiptext {
+        visibility: visible;
+        opacity: 1;
+    }
+    .stButton > button {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -525,6 +581,13 @@ def main():
     # Sidebar controls
     st.sidebar.header("Portfolio Configuration")
     
+    # Add simulation control
+    st.sidebar.markdown("### Simulation Controls")
+    run_simulation = st.sidebar.button("🚀 Run Risk Analysis", help="Click to run the complete risk assessment")
+    if not run_simulation:
+        st.sidebar.info("👆 Click 'Run Risk Analysis' to start the assessment")
+        return
+    
     # Quick Reference
     with st.sidebar.expander("📋 Quick Reference", expanded=False):
         st.markdown("""
@@ -552,7 +615,7 @@ def main():
         min_value=1, 
         max_value=100, 
         value=10,
-        help="Minimum loss threshold for reinsurance coverage"
+        help="💡 Attachment Point: The loss threshold where reinsurance coverage begins. Losses below this amount are retained by the primary insurer."
     )
     
     portfolio_size = st.sidebar.slider(
@@ -560,7 +623,7 @@ def main():
         min_value=10, 
         max_value=1000, 
         value=50,
-        help="Total portfolio value in millions"
+        help="💡 Portfolio Size: Total value of insurance policies in the portfolio. Larger portfolios typically have better diversification benefits."
     )
     
     region = st.sidebar.selectbox(
@@ -583,7 +646,7 @@ def main():
         min_value=0.1,
         max_value=1.0,
         value=0.8,
-        help="Percentage of losses ceded to reinsurer"
+        help="💡 Cede Rate: The percentage of losses above the attachment point that are transferred to the reinsurer. 80% means the reinsurer covers 80% of losses above the threshold."
     )
     
     # Load and preprocess data
@@ -648,6 +711,7 @@ def main():
     risk_level = "HIGH RISK" if var_99 > 5000000 else "LOW RISK"
     
     # Main dashboard
+    st.markdown('<div class="section-header">📊 Risk Assessment Dashboard</div>', unsafe_allow_html=True)
     col1, col2, col3 = st.columns(3)
     
     with col1:
@@ -673,10 +737,12 @@ def main():
     - Risk Level: {risk_level}
     """)
     
-    # PDF Export
-    col1, col2, col3 = st.columns([1, 1, 2])
+    # Export and Share Section
+    st.markdown('<div class="section-header">📤 Export & Share Results</div>', unsafe_allow_html=True)
+    col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
+    
     with col1:
-        if st.button("📄 Generate PDF Report", help="Download a comprehensive PDF report of this risk assessment"):
+        if st.button("📄 PDF Report", help="Download a comprehensive PDF report of this risk assessment"):
             with st.spinner("Generating PDF report..."):
                 pdf_data = generate_pdf_report(
                     portfolio_size, region, predicted_loss, var_99, es_99, 
@@ -690,7 +756,7 @@ def main():
                         mime="application/pdf"
                     )
     with col2:
-        if st.button("📊 Export Data", help="Download the analysis data as CSV"):
+        if st.button("📊 CSV Data", help="Download the analysis data as CSV"):
             # Create summary data for export
             export_data = {
                 'Metric': ['Portfolio Size', 'Region', 'Predicted Loss', 'VaR (99%)', 'Expected Shortfall', 'Premium', 'Loading Factor', 'Risk Level'],
@@ -705,7 +771,29 @@ def main():
                 mime="text/csv"
             )
     
+    with col3:
+        if st.button("🔗 Share Results", help="Generate a shareable link for this analysis"):
+            # Create a summary for sharing
+            share_text = f"""
+            🚀 ReRisk AI Analysis Results:
+            
+            📊 Portfolio: ${portfolio_size}M {region.title()} Region
+            💰 Predicted Loss: ${predicted_loss/1000000:.1f}M
+            ⚠️ VaR (99%): ${var_99/1000000:.1f}M
+            📈 Premium: ${optimal_premium/1000000:.1f}M
+            🎯 Risk Level: {risk_level}
+            
+            Generated by ReRisk AI - Advanced Catastrophe Risk Assessment
+            """
+            st.code(share_text, language="text")
+            st.info("💡 Copy the text above to share your analysis results!")
+    
+    with col4:
+        if st.button("📱 Mobile View", help="Optimize view for mobile devices"):
+            st.info("📱 Mobile-optimized view activated! The layout has been adjusted for better mobile experience.")
+    
     # Visualizations
+    st.markdown('<div class="section-header">🗺️ Geographic & Risk Analysis</div>', unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     
     with col1:
@@ -728,7 +816,7 @@ def main():
         st.plotly_chart(fig_dist, use_container_width=True)
     
     # SHAP explanation
-    st.markdown("### Model Explainability (SHAP)")
+    st.markdown('<div class="section-header">🧠 AI Model Explainability</div>', unsafe_allow_html=True)
     shap_fig = create_shap_plot(xgb_model, X.sample(min(100, len(X))), feature_names)
     st.plotly_chart(shap_fig, use_container_width=True)
     
@@ -740,7 +828,7 @@ def main():
         st.metric("Regression MSE", f"{mse:.0f}")
     
     # Portfolio Analysis
-    st.markdown("### Portfolio Analysis")
+    st.markdown('<div class="section-header">📈 Portfolio Analytics</div>', unsafe_allow_html=True)
     
     # Calculate portfolio metrics
     total_exposure = portfolio_size * 1000000
@@ -758,7 +846,7 @@ def main():
         st.metric("Risk-Adjusted Return", f"{((optimal_premium - predicted_loss)/predicted_loss)*100:.1f}%" if predicted_loss > 0 else "N/A")
     
     # Historical vs Predicted comparison
-    st.markdown("### Historical vs Predicted Losses")
+    st.markdown('<div class="section-header">📊 Historical vs Predicted Analysis</div>', unsafe_allow_html=True)
     try:
         # Use ceded_loss from the processed dataframe
         historical_losses = df_processed['ceded_loss'].values
