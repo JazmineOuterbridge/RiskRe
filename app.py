@@ -415,6 +415,44 @@ def main():
         It uses machine learning models to predict expected losses, calculate risk metrics, and suggest 
         optimal reinsurance premiums for natural catastrophes like hurricanes and earthquakes.
         
+        ### Why This Tool is Useful:
+        **For Reinsurance Companies:**
+        - **Risk Assessment**: Quickly evaluate portfolio risk across different regions and scenarios
+        - **Pricing Optimization**: Set competitive yet profitable reinsurance premiums
+        - **Capital Allocation**: Make informed decisions about capital deployment and risk exposure
+        - **Regulatory Compliance**: Generate reports and documentation for regulatory requirements
+        
+        **For Insurance Companies:**
+        - **Portfolio Analysis**: Understand risk concentration and diversification opportunities
+        - **Reinsurance Shopping**: Compare different reinsurance options and pricing
+        - **Scenario Planning**: Test "what-if" scenarios for climate change and market conditions
+        - **Risk Management**: Identify high-risk areas and develop mitigation strategies
+        
+        **For Risk Managers:**
+        - **Real-Time Analysis**: Get instant risk assessments without waiting for external models
+        - **Transparent Methodology**: Understand how risk calculations are derived using SHAP explainability
+        - **Cost Savings**: Reduce reliance on expensive external catastrophe models
+        - **Customization**: Adjust parameters to match specific portfolio characteristics
+        
+        ### Business Value & ROI:
+        **Cost Savings:**
+        - **External Model Costs**: Save $50,000-$200,000 annually on external catastrophe models
+        - **Consultant Fees**: Reduce reliance on expensive risk consulting services
+        - **Time Efficiency**: Get results in minutes instead of days or weeks
+        - **Customization**: No need to pay for model modifications or updates
+        
+        **Competitive Advantages:**
+        - **Faster Decision Making**: Real-time risk assessment for rapid market opportunities
+        - **Better Pricing**: More accurate risk pricing leads to better profit margins
+        - **Risk Optimization**: Identify and capitalize on diversification opportunities
+        - **Regulatory Edge**: Stay ahead of evolving regulatory requirements
+        
+        **Operational Benefits:**
+        - **Scalability**: Handle multiple portfolios and scenarios simultaneously
+        - **Transparency**: Clear methodology and explainable results
+        - **Integration**: Easy to integrate with existing risk management systems
+        - **Reporting**: Automated report generation for stakeholders and regulators
+        
         ### Key Features:
         - **Machine Learning Models**: XGBoost classification and Random Forest regression
         - **Risk Calculations**: Value at Risk (VaR), Expected Shortfall (ES), and optimal premiums
@@ -422,12 +460,35 @@ def main():
         - **Geographic Analysis**: Interactive maps showing regional risk exposure
         - **Model Explainability**: SHAP values for transparent decision-making
         - **Climate Scenarios**: What-if analysis for climate change impacts
+        - **Multi-Peril Risk**: Hurricane, earthquake, flood, tornado, wildfire modeling
+        - **Portfolio Analytics**: Risk concentration, diversification, and return analysis
+        - **Export Capabilities**: PDF reports and CSV data downloads
+        
+        ### Real-World Use Cases:
+        **Reinsurance Underwriting:**
+        - **New Business**: Evaluate risk for new reinsurance treaties
+        - **Renewal Pricing**: Adjust premiums based on updated risk assessments
+        - **Portfolio Management**: Optimize risk exposure across different regions
+        - **Capital Planning**: Determine capital requirements for regulatory compliance
+        
+        **Insurance Risk Management:**
+        - **Reinsurance Shopping**: Compare different reinsurance options and costs
+        - **Risk Transfer Decisions**: Determine optimal attachment points and coverage limits
+        - **Scenario Analysis**: Test impact of climate change and market conditions
+        - **Regulatory Reporting**: Generate reports for Solvency II, ORSA, and other requirements
+        
+        **Investment & Finance:**
+        - **Alternative Investments**: Evaluate catastrophe bonds and ILS opportunities
+        - **Risk Modeling**: Support for structured finance and securitization
+        - **Due Diligence**: Assess risk for M&A and portfolio acquisitions
+        - **Stress Testing**: Test portfolio resilience under extreme scenarios
         
         ### How to Use:
         1. **Configure Portfolio**: Set attachment points, portfolio size, and primary region
         2. **Adjust Parameters**: Modify climate amplification and cede rates as needed
         3. **Analyze Results**: Review predicted losses, risk metrics, and suggested premiums
         4. **Interpret Visualizations**: Use maps and charts to understand risk distribution
+        5. **Export Reports**: Download PDF reports and CSV data for further analysis
         
         ### Understanding the Results:
         - **Predicted Annual Loss**: Expected reinsurance losses based on historical data
