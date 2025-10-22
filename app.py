@@ -17,13 +17,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score, mean_squared_error
 import shap
 import warnings
-import os
 warnings.filterwarnings('ignore')
-
-# Configure for Vercel deployment
-if os.getenv('VERCEL'):
-    st.set_option('server.port', 8501)
-    st.set_option('server.address', '0.0.0.0')
 
 # Page configuration
 st.set_page_config(
@@ -420,16 +414,6 @@ def main():
     # Footer
     st.markdown("---")
     st.markdown("**ReRisk AI** - Powered by Machine Learning for Catastrophe Risk Assessment")
-    
-    # Deployment comments
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("### Deployment Notes")
-    st.sidebar.info("""
-    For Vercel deployment:
-    1. Create vercel.json with serverless function
-    2. Set environment variables
-    3. Deploy with: vercel --prod
-    """)
 
 if __name__ == "__main__":
     main()

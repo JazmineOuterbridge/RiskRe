@@ -100,34 +100,31 @@ The dashboard displays:
 streamlit run app.py
 ```
 
-### Production Deployment (Vercel)
+### Production Deployment (Streamlit Cloud)
 
-1. **Create vercel.json**:
-   ```json
-   {
-     "builds": [
-       {
-         "src": "app.py",
-         "use": "@vercel/python"
-       }
-     ],
-     "routes": [
-       {
-         "src": "/(.*)",
-         "dest": "app.py"
-       }
-     ]
-   }
-   ```
+**Recommended: Streamlit Cloud (Free Hosting)**
 
-2. **Deploy**:
+1. **Push to GitHub**:
    ```bash
-   vercel --prod
+   git add .
+   git commit -m "Update ReRisk AI"
+   git push origin main
    ```
 
-### Environment Variables
-- Set any required API keys or database connections
-- Configure data source paths if needed
+2. **Deploy on Streamlit Cloud**:
+   - Go to [share.streamlit.io](https://share.streamlit.io)
+   - Sign in with GitHub
+   - Click "New app"
+   - Repository: `JazmineOuterbridge/RiskRe`
+   - Main file: `app.py`
+   - Click "Deploy!"
+
+3. **Your app will be live** at: `https://your-app-name.streamlit.app/`
+
+### Alternative: Other Platforms
+- **Heroku**: Good for persistent apps
+- **Railway**: Modern alternative to Heroku
+- **Google Cloud Run**: For enterprise deployments
 
 ## Data Requirements
 
