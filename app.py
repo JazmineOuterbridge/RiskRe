@@ -182,9 +182,18 @@ def calculate_reinsurance_premium(predicted_loss, expense_ratio=0.3, profit_marg
 
 def create_risk_map(df, region_filter):
     """Create interactive Folium map with risk heatmap"""
-    # Focus on Florida for south region
-    if region_filter == 'south':
-        center_lat, center_lon = 27.8, -83.0
+    # Focus on specific regions
+    if region_filter in ['south', 'southeast']:
+        center_lat, center_lon = 27.8, -83.0  # Florida
+        zoom_start = 6
+    elif region_filter in ['northeast']:
+        center_lat, center_lon = 40.7128, -74.0060  # New York
+        zoom_start = 6
+    elif region_filter in ['northwest']:
+        center_lat, center_lon = 47.6062, -122.3321  # Seattle
+        zoom_start = 6
+    elif region_filter in ['southwest']:
+        center_lat, center_lon = 33.4484, -112.0740  # Phoenix
         zoom_start = 6
     else:
         center_lat, center_lon = 39.8283, -98.5795  # Center of US
@@ -263,8 +272,8 @@ def main():
     
     region = st.sidebar.selectbox(
         "Primary Region",
-        options=['north', 'south', 'east', 'west'],
-        index=1,  # Default to south
+        options=['south', 'southeast', 'northwest', 'northeast', 'southwest'],
+        index=0,  # Default to south
         help="Geographic region of primary exposure"
     )
     
