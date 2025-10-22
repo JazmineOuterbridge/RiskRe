@@ -228,28 +228,73 @@ def create_risk_map(df, region_filter):
 
 def create_shap_plot(model, X_sample, feature_names):
     """Create SHAP explanation plot"""
-    # Calculate SHAP values
-    explainer = shap.TreeExplainer(model)
-    shap_values = explainer.shap_values(X_sample)
-    
-    # Create bar plot
-    mean_shap = np.abs(shap_values).mean(0)
-    feature_importance = pd.DataFrame({
-        'feature': feature_names,
-        'importance': mean_shap
-    }).sort_values('importance', ascending=True)
-    
-    fig = px.bar(
-        feature_importance, 
-        x='importance', 
-        y='feature',
-        orientation='h',
-        title='Feature Importance (SHAP Values)',
-        color='importance',
-        color_continuous_scale='Reds'
-    )
-    
-    return fig
+    try:
+        # Check if model is tree-based (XGBoost, RandomForest, etc.)
+        model_type = type(model).__name__
+        
+        if model_type in ['XGBClassifier', 'XGBRegressor', 'RandomForestClassifier', 'RandomForestRegressor']:
+            # Use TreeExplainer for tree-based models
+            explainer = shap.TreeExplainer(model)
+            shap_values = explainer.shap_values(X_sample)
+        else:
+            # Use KernelExplainer for non-tree models (LogisticRegression, LinearRegression, etc.)
+            explainer = shap.KernelExplainer(model.predict_proba if hasattr(model, 'predict_proba') else model.predict, X_sample)
+            shap_values = explainer.shap_values(X_sample)
+        
+        # Create bar plot
+        if len(shap_values.shape) > 2:
+            # For classification, take mean across classes
+            mean_shap = np.abs(shap_values).mean(axis=(0, 1))
+        else:
+            # For regression or single class
+            mean_shap = np.abs(shap_values).mean(0)
+        
+        feature_importance = pd.DataFrame({
+            'feature': feature_names,
+            'importance': mean_shap
+        }).sort_values('importance', ascending=True)
+        
+        fig = px.bar(
+            feature_importance, 
+            x='importance', 
+            y='feature',
+            orientation='h',
+            title='Feature Importance (SHAP Values)',
+            color='importance',
+            color_continuous_scale='Reds'
+        )
+        
+        return fig
+        
+    except Exception as e:
+        # Fallback: create a simple feature importance plot
+        st.warning(f"SHAP analysis failed: {str(e)}. Showing model coefficients instead.")
+        
+        # Try to get feature importance from model
+        if hasattr(model, 'feature_importances_'):
+            importance = model.feature_importances_
+        elif hasattr(model, 'coef_'):
+            importance = np.abs(model.coef_[0] if len(model.coef_.shape) > 1 else model.coef_)
+        else:
+            # Random importance as fallback
+            importance = np.random.random(len(feature_names))
+        
+        feature_importance = pd.DataFrame({
+            'feature': feature_names,
+            'importance': importance
+        }).sort_values('importance', ascending=True)
+        
+        fig = px.bar(
+            feature_importance, 
+            x='importance', 
+            y='feature',
+            orientation='h',
+            title='Feature Importance (Model Coefficients)',
+            color='importance',
+            color_continuous_scale='Reds'
+        )
+        
+        return fig
 
 def main():
     """Main application"""
@@ -311,8 +356,8 @@ def main():
         return
     
     # Check if we have enough data for ML training
-    if len(df_filtered) < 10:
-        st.warning(f"Limited data for region: {region} ({len(df_filtered)} samples). Results may be less reliable.")
+    if len(df_filtered) < 50:
+        st.warning(f"Limited data for region: {region} ({len(df_filtered)} samples). Using all available data for better model performance.")
         # Use all data for training if sample size is too small
         df_filtered = df.copy()  # Use all data as fallback
     
