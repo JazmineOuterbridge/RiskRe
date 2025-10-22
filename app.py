@@ -22,7 +22,7 @@ warnings.filterwarnings('ignore')
 # Page configuration
 st.set_page_config(
     page_title="ReRisk AI: Catastrophe Re-Pricing Tool",
-    page_icon="🔥",
+    page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -299,7 +299,7 @@ def create_shap_plot(model, X_sample, feature_names):
 def main():
     """Main application"""
     # Header
-    st.markdown('<h1 class="main-header">🔥 ReRisk AI: Catastrophe Re-Pricing Tool</h1>', 
+    st.markdown('<h1 class="main-header">ReRisk AI: Catastrophe Re-Pricing Tool</h1>', 
                 unsafe_allow_html=True)
     
     # Sidebar controls
@@ -403,7 +403,7 @@ def main():
     loading_factor = optimal_premium / predicted_loss if predicted_loss > 0 else 1
     
     # Risk indicator
-    risk_emoji = "🔥" if var_99 > 5000000 else "😎"
+    risk_level = "HIGH RISK" if var_99 > 5000000 else "LOW RISK"
     
     # Main dashboard
     col1, col2, col3 = st.columns(3)
@@ -418,7 +418,7 @@ def main():
     
     with col3:
         st.metric("Loading Factor", f"{loading_factor:.1f}x")
-        st.markdown(f'<div class="risk-indicator">{risk_emoji}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="risk-indicator">{risk_level}</div>', unsafe_allow_html=True)
     
     # Risk summary
     st.markdown("### Risk Assessment Summary")
@@ -428,7 +428,7 @@ def main():
     - VaR (99%): ${var_99/1000000:.1f}M  
     - ES: ${es_99/1000000:.1f}M
     - Suggested premium: ${optimal_premium/1000000:.1f}M ({loading_factor:.0%} loading)
-    - Risk Vibe: {risk_emoji}
+    - Risk Level: {risk_level}
     """)
     
     # Visualizations
