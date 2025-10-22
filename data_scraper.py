@@ -17,7 +17,7 @@ def scrape_insurance_data():
     
     # Generate realistic insurance data based on real patterns
     np.random.seed(42)
-    n_samples = 5000  # Much larger dataset
+    n_samples = 10000  # Even larger dataset for better realism
     
     # Realistic age distribution (18-80)
     ages = np.random.normal(45, 15, n_samples)
@@ -96,7 +96,25 @@ def scrape_insurance_data():
     # Add risk score
     df['risk_score'] = (df['bmi'] + df['age']) / 100
     
-    print(f"Generated {len(df)} insurance records")
+    # Add time-series features for better realism
+    df['policy_year'] = np.random.choice(range(2015, 2025), n_samples)
+    df['years_since_inception'] = 2024 - df['policy_year']
+    df['inflation_adjusted_charges'] = df['charges'] * (1 + 0.03 * df['years_since_inception'])
+    
+    # Add seasonal effects
+    df['season'] = np.random.choice(['spring', 'summer', 'fall', 'winter'], n_samples)
+    seasonal_multipliers = {'spring': 1.0, 'summer': 1.1, 'fall': 1.05, 'winter': 1.15}
+    df['seasonal_charges'] = df['charges'] * df['season'].map(seasonal_multipliers)
+    
+    # Add claims history
+    df['prior_claims'] = np.random.poisson(0.3, n_samples)
+    df['claims_frequency'] = df['prior_claims'] / (df['years_since_inception'] + 1)
+    
+    # Add credit score proxy
+    df['credit_score'] = np.random.normal(650, 100, n_samples)
+    df['credit_score'] = np.clip(df['credit_score'], 300, 850)
+    
+    print(f"Generated {len(df)} insurance records with enhanced features")
     return df
 
 def scrape_hurricane_data():
