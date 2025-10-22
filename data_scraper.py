@@ -103,7 +103,7 @@ def scrape_hurricane_data():
     """Scrape and generate comprehensive hurricane/catastrophe data"""
     print("Scraping hurricane/catastrophe data...")
     
-    # Realistic hurricane exposure data based on historical patterns
+    # Enhanced catastrophe exposure data with multiple perils
     hurricane_data = {
         'region': ['northeast', 'southeast', 'northwest', 'southwest', 'south'],
         'cat_exposure': [1.0, 1.4, 1.1, 1.2, 1.5],  # South has highest exposure
@@ -111,7 +111,11 @@ def scrape_hurricane_data():
         'avg_intensity': [2.5, 3.6, 2.8, 3.0, 3.8],  # Average category
         'flood_risk': [0.3, 0.8, 0.4, 0.5, 0.9],  # Flood risk factor
         'wind_risk': [0.2, 0.9, 0.3, 0.4, 0.95],  # Wind risk factor
-        'earthquake_risk': [0.1, 0.2, 0.8, 0.6, 0.3]  # Earthquake risk (West Coast)
+        'earthquake_risk': [0.1, 0.2, 0.8, 0.6, 0.3],  # Earthquake risk (West Coast)
+        'seismic_hazard': [0.05, 0.1, 0.9, 0.7, 0.2],  # Seismic hazard score
+        'tornado_risk': [0.3, 0.6, 0.1, 0.4, 0.5],  # Tornado risk factor
+        'wildfire_risk': [0.1, 0.3, 0.2, 0.8, 0.4],  # Wildfire risk factor
+        'storm_surge_risk': [0.2, 0.9, 0.1, 0.3, 0.95]  # Storm surge risk
     }
     
     df_hurricanes = pd.DataFrame(hurricane_data)
@@ -172,20 +176,46 @@ def scrape_economic_data():
     """Generate economic indicators that affect insurance pricing"""
     print("Generating economic data...")
     
-    # Economic indicators by region
+    # Enhanced economic indicators by region
     economic_data = {
         'region': ['northeast', 'southeast', 'northwest', 'southwest', 'south'],
         'gdp_per_capita': [65000, 45000, 55000, 50000, 40000],  # USD
         'population_density': [400, 150, 50, 80, 200],  # people per sq km
         'property_values': [350000, 200000, 300000, 250000, 180000],  # USD
         'inflation_rate': [2.5, 3.2, 2.8, 3.0, 3.5],  # Annual %
-        'unemployment_rate': [4.5, 5.2, 4.8, 5.0, 5.8]  # %
+        'unemployment_rate': [4.5, 5.2, 4.8, 5.0, 5.8],  # %
+        'construction_costs': [150, 120, 140, 130, 110],  # Cost per sq ft
+        'building_codes': [0.9, 0.7, 0.8, 0.75, 0.6],  # Code strength (0-1)
+        'infrastructure_age': [45, 35, 40, 38, 30],  # Average age in years
+        'disaster_preparedness': [0.8, 0.6, 0.7, 0.65, 0.5]  # Preparedness score
     }
     
     df_economic = pd.DataFrame(economic_data)
     
     print(f"Generated economic data for {len(df_economic)} regions")
     return df_economic
+
+def scrape_earthquake_data():
+    """Generate earthquake-specific risk data"""
+    print("Generating earthquake risk data...")
+    
+    # Earthquake risk data based on seismic hazard maps
+    earthquake_data = {
+        'region': ['northeast', 'southeast', 'northwest', 'southwest', 'south'],
+        'seismic_hazard': [0.05, 0.1, 0.9, 0.7, 0.2],  # Peak ground acceleration
+        'fault_proximity': [0.1, 0.2, 0.95, 0.8, 0.3],  # Distance to major faults
+        'soil_conditions': [0.3, 0.4, 0.8, 0.6, 0.2],  # Soil amplification factor
+        'building_vulnerability': [0.2, 0.3, 0.7, 0.5, 0.4],  # Building vulnerability
+        'liquefaction_risk': [0.1, 0.2, 0.6, 0.4, 0.3],  # Liquefaction potential
+        'tsunami_risk': [0.05, 0.1, 0.8, 0.6, 0.2],  # Tsunami risk factor
+        'expected_magnitude': [4.0, 4.5, 7.2, 6.8, 5.0],  # Expected earthquake magnitude
+        'return_period': [1000, 500, 50, 100, 200]  # Return period in years
+    }
+    
+    df_earthquake = pd.DataFrame(earthquake_data)
+    
+    print(f"Generated earthquake data for {len(df_earthquake)} regions")
+    return df_earthquake
 
 def main():
     """Main scraping function"""
@@ -200,12 +230,14 @@ def main():
         df_hurricanes = scrape_hurricane_data()
         df_events = scrape_historical_claims()
         df_economic = scrape_economic_data()
+        df_earthquake = scrape_earthquake_data()
         
         # Save datasets
         df_insurance.to_csv('data/insurance2.csv', index=False)
         df_hurricanes.to_csv('data/hurricanes.csv', index=False)
         df_events.to_csv('data/historical_events.csv', index=False)
         df_economic.to_csv('data/economic_indicators.csv', index=False)
+        df_earthquake.to_csv('data/earthquake_risk.csv', index=False)
         
         print("\nData scraping completed successfully!")
         print(f"Generated datasets:")
@@ -213,6 +245,7 @@ def main():
         print(f"   - Hurricane data: {len(df_hurricanes)} regions")
         print(f"   - Historical events: {len(df_events)} events")
         print(f"   - Economic data: {len(df_economic)} regions")
+        print(f"   - Earthquake data: {len(df_earthquake)} regions")
         
         # Display sample data
         print(f"\nSample insurance data:")

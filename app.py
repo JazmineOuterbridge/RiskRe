@@ -17,6 +17,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score, mean_squared_error
 import shap
 import warnings
+from datetime import datetime
+import io
+import base64
 warnings.filterwarnings('ignore')
 
 # Page configuration
@@ -296,6 +299,108 @@ def create_shap_plot(model, X_sample, feature_names):
         
         return fig
 
+def generate_pdf_report(portfolio_size, region, predicted_loss, var_99, es_99, optimal_premium, risk_level, loading_factor):
+    """Generate PDF report for the risk assessment"""
+    try:
+        from reportlab.lib.pagesizes import letter
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import inch
+        from reportlab.lib import colors
+        
+        # Create PDF buffer
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        styles = getSampleStyleSheet()
+        
+        # Custom styles
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=16,
+            spaceAfter=30,
+            alignment=1  # Center alignment
+        )
+        
+        # Build PDF content
+        story = []
+        
+        # Title
+        story.append(Paragraph("ReRisk AI: Catastrophe Risk Assessment Report", title_style))
+        story.append(Spacer(1, 12))
+        
+        # Report metadata
+        story.append(Paragraph(f"<b>Generated:</b> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", styles['Normal']))
+        story.append(Paragraph(f"<b>Portfolio Size:</b> ${portfolio_size}M", styles['Normal']))
+        story.append(Paragraph(f"<b>Primary Region:</b> {region.title()}", styles['Normal']))
+        story.append(Spacer(1, 20))
+        
+        # Risk Assessment Summary
+        story.append(Paragraph("Risk Assessment Summary", styles['Heading2']))
+        
+        # Create summary table
+        summary_data = [
+            ['Metric', 'Value'],
+            ['Predicted Annual Loss', f'${predicted_loss/1000000:.1f}M'],
+            ['VaR (99%)', f'${var_99/1000000:.1f}M'],
+            ['Expected Shortfall', f'${es_99/1000000:.1f}M'],
+            ['Suggested Premium', f'${optimal_premium/1000000:.1f}M'],
+            ['Loading Factor', f'{loading_factor:.1f}x'],
+            ['Risk Level', risk_level]
+        ]
+        
+        summary_table = Table(summary_data)
+        summary_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 14),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        
+        story.append(summary_table)
+        story.append(Spacer(1, 20))
+        
+        # Methodology
+        story.append(Paragraph("Methodology", styles['Heading2']))
+        story.append(Paragraph("""
+        This risk assessment utilizes machine learning models trained on historical insurance data 
+        and catastrophe exposure information. The analysis includes:
+        """, styles['Normal']))
+        story.append(Paragraph("• XGBoost classification for high-risk prediction", styles['Normal']))
+        story.append(Paragraph("• Random Forest regression for loss amount prediction", styles['Normal']))
+        story.append(Paragraph("• Monte Carlo simulation with 1,000 iterations", styles['Normal']))
+        story.append(Paragraph("• Regional catastrophe exposure multipliers", styles['Normal']))
+        story.append(Spacer(1, 20))
+        
+        # Disclaimer
+        story.append(Paragraph("Disclaimer", styles['Heading2']))
+        story.append(Paragraph("""
+        This report is for demonstration and educational purposes only. Results should not be used 
+        for actual reinsurance pricing without proper validation and additional data. Always consult 
+        with qualified actuaries and risk professionals for real-world applications.
+        """, styles['Normal']))
+        
+        # Build PDF
+        doc.build(story)
+        
+        # Get PDF data
+        buffer.seek(0)
+        pdf_data = buffer.getvalue()
+        buffer.close()
+        
+        return pdf_data
+        
+    except ImportError:
+        st.error("PDF generation requires reportlab. Please install with: pip install reportlab")
+        return None
+    except Exception as e:
+        st.error(f"PDF generation failed: {str(e)}")
+        return None
+
 def main():
     """Main application"""
     # Header
@@ -507,6 +612,38 @@ def main():
     - Risk Level: {risk_level}
     """)
     
+    # PDF Export
+    col1, col2, col3 = st.columns([1, 1, 2])
+    with col1:
+        if st.button("📄 Generate PDF Report", help="Download a comprehensive PDF report of this risk assessment"):
+            with st.spinner("Generating PDF report..."):
+                pdf_data = generate_pdf_report(
+                    portfolio_size, region, predicted_loss, var_99, es_99, 
+                    optimal_premium, risk_level, loading_factor
+                )
+                if pdf_data:
+                    st.download_button(
+                        label="📥 Download PDF Report",
+                        data=pdf_data,
+                        file_name=f"ReRisk_Report_{region}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+                        mime="application/pdf"
+                    )
+    with col2:
+        if st.button("📊 Export Data", help="Download the analysis data as CSV"):
+            # Create summary data for export
+            export_data = {
+                'Metric': ['Portfolio Size', 'Region', 'Predicted Loss', 'VaR (99%)', 'Expected Shortfall', 'Premium', 'Loading Factor', 'Risk Level'],
+                'Value': [f'${portfolio_size}M', region.title(), f'${predicted_loss/1000000:.1f}M', f'${var_99/1000000:.1f}M', f'${es_99/1000000:.1f}M', f'${optimal_premium/1000000:.1f}M', f'{loading_factor:.1f}x', risk_level]
+            }
+            df_export = pd.DataFrame(export_data)
+            csv_data = df_export.to_csv(index=False)
+            st.download_button(
+                label="📥 Download CSV",
+                data=csv_data,
+                file_name=f"ReRisk_Data_{region}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                mime="text/csv"
+            )
+    
     # Visualizations
     col1, col2 = st.columns(2)
     
@@ -540,6 +677,24 @@ def main():
         st.metric("Classification AUC", f"{auc_score:.3f}")
     with col2:
         st.metric("Regression MSE", f"{mse:.0f}")
+    
+    # Portfolio Analysis
+    st.markdown("### Portfolio Analysis")
+    
+    # Calculate portfolio metrics
+    total_exposure = portfolio_size * 1000000
+    risk_concentration = (predicted_loss / total_exposure) * 100 if total_exposure > 0 else 0
+    diversification_ratio = 1 - (predicted_loss / total_exposure) if total_exposure > 0 else 1
+    
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("Risk Concentration", f"{risk_concentration:.1f}%")
+    with col2:
+        st.metric("Diversification Ratio", f"{diversification_ratio:.2f}")
+    with col3:
+        st.metric("Expected Return", f"{(optimal_premium - predicted_loss)/1000000:.1f}M")
+    with col4:
+        st.metric("Risk-Adjusted Return", f"{((optimal_premium - predicted_loss)/predicted_loss)*100:.1f}%" if predicted_loss > 0 else "N/A")
     
     # Historical vs Predicted comparison
     st.markdown("### Historical vs Predicted Losses")
