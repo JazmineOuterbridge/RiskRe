@@ -1,11 +1,10 @@
 """
-Data Scraper for ReRisk AI - Catastrophe Re-Pricing Tool
-Scrapes real insurance and catastrophe data from public sources
+CAT Data Scraper for ReRisk AI
+Generates catastrophe-specific insurance data for property risk assessment
 """
 
 import pandas as pd
 import numpy as np
-import requests
 import json
 from datetime import datetime, timedelta
 import time
@@ -15,9 +14,9 @@ def scrape_cat_insurance_data():
     """Generate catastrophe-specific insurance data for property risk assessment"""
     print("Generating catastrophe insurance data...")
     
-    # Generate realistic insurance data based on real patterns
+    # Generate realistic CAT insurance data
     np.random.seed(42)
-    n_samples = 10000  # Even larger dataset for better realism
+    n_samples = 10000
     
     # Property age (years since construction) - affects vulnerability
     property_ages = np.random.normal(25, 15, n_samples)
@@ -43,64 +42,71 @@ def scrape_cat_insurance_data():
     elevation = np.random.normal(100, 200, n_samples)
     elevation = np.clip(elevation, 0, 2000)
     
-    # Regional distribution with realistic US regions
+    # Regional distribution
     regions = np.random.choice(
         ['northeast', 'southeast', 'northwest', 'southwest', 'south'],
         n_samples,
-        p=[0.18, 0.25, 0.12, 0.15, 0.30]  # South and Southeast have higher representation
+        p=[0.18, 0.25, 0.12, 0.15, 0.30]
     )
     
-    # Calculate charges based on realistic insurance pricing model
+    # Calculate CAT insurance charges based on catastrophe risk factors
     charges = []
     for i in range(n_samples):
-        base_charge = 2000
+        base_charge = 5000  # Base CAT insurance premium
         
-        # Age factor
-        age_factor = 1 + (ages[i] - 18) * 0.05
+        # Property age factor (older buildings more vulnerable)
+        age_factor = 1 + (property_ages[i] / 100) * 0.5
         
-        # BMI factor
-        bmi_factor = 1 + max(0, (bmis[i] - 25) * 0.02)
+        # Construction quality factor (poorer quality = higher risk)
+        quality_factor = 1 + (1 - construction_quality[i]) * 0.8
         
-        # Gender factor (slightly higher for females due to healthcare costs)
-        gender_factor = 1.1 if genders[i] == 'female' else 1.0
+        # Stories factor (taller buildings more vulnerable to wind)
+        stories_factor = 1 + (stories[i] / 10) * 0.3
         
-        # Children factor
-        children_factor = 1 + children[i] * 0.1
+        # Distance to coast factor (closer = higher hurricane risk)
+        coast_factor = 1 + max(0, (100 - distance_to_coast[i]) / 100) * 0.6
         
-        # Smoking factor
-        smoking_factor = 2.0 if smokers[i] == 'yes' else 1.0
+        # Elevation factor (lower elevation = higher flood risk)
+        elevation_factor = 1 + max(0, (100 - elevation[i]) / 100) * 0.4
         
-        # Regional factor (higher in some regions)
+        # Building type factor
+        type_factors = {
+            'single_family': 1.0, 'multi_family': 1.2, 
+            'commercial': 1.5, 'industrial': 1.8
+        }
+        type_factor = type_factors[building_types[i]]
+        
+        # Regional factor (some regions have higher CAT risk)
         regional_factors = {
-            'northeast': 1.3,
-            'southeast': 1.1,
-            'northwest': 1.0,
-            'southwest': 1.05,
-            'south': 1.2
+            'northeast': 1.0, 'southeast': 1.4, 'northwest': 1.1, 
+            'southwest': 1.2, 'south': 1.5
         }
         regional_factor = regional_factors[regions[i]]
         
-        # Calculate final charge
-        charge = base_charge * age_factor * bmi_factor * gender_factor * children_factor * smoking_factor * regional_factor
-        
-        # Add some randomness
-        charge *= np.random.lognormal(0, 0.3)
-        
-        charges.append(charge)
+        total_charge = (base_charge * age_factor * quality_factor * stories_factor * 
+                       coast_factor * elevation_factor * type_factor * regional_factor)
+        charges.append(max(total_charge, 1000))  # Minimum charge
     
     # Create DataFrame
     df = pd.DataFrame({
-        'age': ages,
-        'sex': genders,
-        'bmi': bmis,
-        'children': children,
-        'smoker': smokers,
+        'property_age': property_ages,
+        'building_type': building_types,
+        'construction_quality': construction_quality,
+        'stories': stories,
+        'distance_to_coast': distance_to_coast,
+        'elevation': elevation,
         'region': regions,
         'charges': charges
     })
     
-    # Add risk score
-    df['risk_score'] = (df['bmi'] + df['age']) / 100
+    # Add risk score based on CAT factors
+    df['risk_score'] = (
+        (df['property_age'] / 100) + 
+        (1 - df['construction_quality']) + 
+        (df['stories'] / 20) + 
+        (1 / (df['distance_to_coast'] + 1)) + 
+        (1 / (df['elevation'] + 1))
+    ) / 5
     
     # Add time-series features for better realism
     df['policy_year'] = np.random.choice(range(2015, 2025), n_samples)
@@ -116,11 +122,11 @@ def scrape_cat_insurance_data():
     df['prior_claims'] = np.random.poisson(0.3, n_samples)
     df['claims_frequency'] = df['prior_claims'] / (df['years_since_inception'] + 1)
     
-    # Add credit score proxy
-    df['credit_score'] = np.random.normal(650, 100, n_samples)
-    df['credit_score'] = np.clip(df['credit_score'], 300, 850)
+    # Add property value proxy
+    df['property_value'] = np.random.normal(300000, 150000, n_samples)
+    df['property_value'] = np.clip(df['property_value'], 50000, 2000000)
     
-    print(f"Generated {len(df)} insurance records with enhanced features")
+    print(f"Generated {len(df)} CAT insurance records with enhanced features")
     return df
 
 def scrape_hurricane_data():
@@ -147,49 +153,28 @@ def scrape_hurricane_data():
     print(f"Generated hurricane data for {len(df_hurricanes)} regions")
     return df_hurricanes
 
-def scrape_historical_claims():
-    """Generate historical claims data based on real catastrophe patterns"""
+def scrape_historical_events():
+    """Generate historical catastrophe events data"""
     print("Generating historical claims data...")
     
-    # Historical catastrophe events (simplified)
+    # Historical catastrophe events
     events = []
+    event_types = ['hurricane', 'earthquake', 'flood', 'tornado', 'wildfire']
     
-    # Hurricane events (last 10 years)
-    hurricane_years = [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024]
-    for year in hurricane_years:
-        # Major hurricanes
-        if year in [2017, 2018, 2020, 2021, 2022]:
-            events.append({
-                'year': year,
-                'event_type': 'hurricane',
-                'region': 'south',
-                'severity': 'major',
-                'total_losses': np.random.lognormal(15, 1),  # Millions
-                'insured_losses': np.random.lognormal(14, 1)
-            })
-        
-        # Minor hurricanes
-        if np.random.random() > 0.3:
-            events.append({
-                'year': year,
-                'event_type': 'hurricane',
-                'region': 'southeast',
-                'severity': 'minor',
-                'total_losses': np.random.lognormal(12, 0.5),
-                'insured_losses': np.random.lognormal(11, 0.5)
-            })
-    
-    # Earthquake events
-    for year in [2016, 2018, 2019, 2021, 2023]:
-        if np.random.random() > 0.6:
-            events.append({
-                'year': year,
-                'event_type': 'earthquake',
-                'region': 'northwest',
-                'severity': 'moderate',
-                'total_losses': np.random.lognormal(13, 0.8),
-                'insured_losses': np.random.lognormal(12, 0.8)
-            })
+    for year in range(2015, 2024):
+        for event_type in event_types:
+            # Generate 1-3 events per type per year
+            n_events = np.random.poisson(1.5)
+            for _ in range(n_events):
+                event = {
+                    'year': year,
+                    'event_type': event_type,
+                    'severity': np.random.uniform(0.1, 1.0),
+                    'affected_region': np.random.choice(['northeast', 'southeast', 'northwest', 'southwest', 'south']),
+                    'estimated_loss': np.random.lognormal(10, 2) * 1000000,  # Loss in millions
+                    'frequency': np.random.uniform(0.1, 1.0)
+                }
+                events.append(event)
     
     df_events = pd.DataFrame(events)
     
@@ -242,47 +227,40 @@ def scrape_earthquake_data():
     return df_earthquake
 
 def main():
-    """Main scraping function"""
-    print("Starting data scraping for ReRisk AI...")
+    """Main function to generate all CAT data"""
+    print("Starting CAT data scraping for ReRisk AI...")
     
     # Create data directory if it doesn't exist
     os.makedirs('data', exist_ok=True)
     
-    try:
-        # Scrape all datasets
-        df_insurance = scrape_insurance_data()
-        df_hurricanes = scrape_hurricane_data()
-        df_events = scrape_historical_claims()
-        df_economic = scrape_economic_data()
-        df_earthquake = scrape_earthquake_data()
-        
-        # Save datasets
-        df_insurance.to_csv('data/insurance2.csv', index=False)
-        df_hurricanes.to_csv('data/hurricanes.csv', index=False)
-        df_events.to_csv('data/historical_events.csv', index=False)
-        df_economic.to_csv('data/economic_indicators.csv', index=False)
-        df_earthquake.to_csv('data/earthquake_risk.csv', index=False)
-        
-        print("\nData scraping completed successfully!")
-        print(f"Generated datasets:")
-        print(f"   - Insurance data: {len(df_insurance)} records")
-        print(f"   - Hurricane data: {len(df_hurricanes)} regions")
-        print(f"   - Historical events: {len(df_events)} events")
-        print(f"   - Economic data: {len(df_economic)} regions")
-        print(f"   - Earthquake data: {len(df_earthquake)} regions")
-        
-        # Display sample data
-        print(f"\nSample insurance data:")
-        print(df_insurance.head())
-        
-        print(f"\nSample hurricane data:")
-        print(df_hurricanes)
-        
-    except Exception as e:
-        print(f"Error during data scraping: {str(e)}")
-        return False
+    # Generate all datasets
+    df_insurance = scrape_cat_insurance_data()
+    df_hurricanes = scrape_hurricane_data()
+    df_events = scrape_historical_events()
+    df_economic = scrape_economic_data()
+    df_earthquake = scrape_earthquake_data()
     
-    return True
+    # Save datasets
+    df_insurance.to_csv('data/insurance2.csv', index=False)
+    df_hurricanes.to_csv('data/hurricanes.csv', index=False)
+    df_events.to_csv('data/historical_events.csv', index=False)
+    df_economic.to_csv('data/economic_indicators.csv', index=False)
+    df_earthquake.to_csv('data/earthquake_risk.csv', index=False)
+    
+    print("\nCAT data scraping completed successfully!")
+    print(f"Generated datasets:")
+    print(f"   - CAT Insurance data: {len(df_insurance)} records")
+    print(f"   - Hurricane data: {len(df_hurricanes)} regions")
+    print(f"   - Historical events: {len(df_events)} events")
+    print(f"   - Economic data: {len(df_economic)} regions")
+    print(f"   - Earthquake data: {len(df_earthquake)} regions")
+    
+    # Display sample data
+    print(f"\nSample CAT insurance data:")
+    print(df_insurance.head())
+    
+    print(f"\nSample hurricane data:")
+    print(df_hurricanes.head())
 
 if __name__ == "__main__":
     main()

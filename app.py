@@ -117,8 +117,8 @@ def load_and_preprocess_data():
         # Load insurance data
         df_insurance = pd.read_csv('data/insurance2.csv')
         
-        # Add risk score
-        df_insurance['risk_score'] = (df_insurance['bmi'] + df_insurance['age']) / 100
+        # Risk score is already calculated in the CAT data
+        # df_insurance['risk_score'] is already present
         
         # Load hurricane data (simulated if not available)
         try:
@@ -171,18 +171,25 @@ def prepare_features(df, attachment_point, cede_rate=0.8):
     # Create high-risk binary target
     df['high_risk'] = (df['charges'] > 10000).astype(int)
     
-    # Prepare features
-    feature_cols = ['age', 'bmi', 'risk_score', 'cat_exposure']
+    # Prepare features (CAT-specific)
+    feature_cols = ['property_age', 'construction_quality', 'stories', 'distance_to_coast', 
+                   'elevation', 'risk_score', 'cat_exposure']
+    
+    # Handle missing columns gracefully
+    available_cols = [col for col in feature_cols if col in df.columns]
     
     # Encode categorical variables
     df_encoded = df.copy()
-    df_encoded = pd.get_dummies(df_encoded, columns=['region', 'sex'], drop_first=True)
+    df_encoded = pd.get_dummies(df_encoded, columns=['region', 'building_type'], drop_first=True)
     
-    # Add region features to feature list
+    # Add region and building type features to feature list
     region_cols = [col for col in df_encoded.columns if col.startswith('region_')]
-    feature_cols.extend(region_cols)
+    building_cols = [col for col in df_encoded.columns if col.startswith('building_type_')]
+    feature_cols.extend(region_cols + building_cols)
     
-    X = df_encoded[feature_cols]
+    # Select available features
+    available_feature_cols = [col for col in feature_cols if col in df_encoded.columns]
+    X = df_encoded[available_feature_cols]
     y_classification = df_encoded['high_risk']
     y_regression = df_encoded['ceded_loss']
     
