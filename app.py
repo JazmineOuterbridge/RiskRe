@@ -511,6 +511,10 @@ def generate_pdf_report(portfolio_size, region, predicted_loss, var_99, es_99, o
 
 def main():
     """Main application"""
+    # Initialize session state
+    if 'analysis_run' not in st.session_state:
+        st.session_state.analysis_run = False
+    
     # Header
     st.markdown('<h1 class="main-header">ReRisk AI: Catastrophe Re-Pricing Tool</h1>', 
                 unsafe_allow_html=True)
@@ -633,12 +637,9 @@ def main():
     # Sidebar controls
     st.sidebar.header("Portfolio Configuration")
     
-    # Add simulation control
-    st.sidebar.markdown("### Simulation Controls")
-    run_simulation = st.sidebar.button("🚀 Run Risk Analysis", help="Click to run the complete risk assessment")
-    if not run_simulation:
-        st.sidebar.info("👆 Click 'Run Risk Analysis' to start the assessment")
-        return
+    # Simulation runs automatically
+    st.sidebar.markdown("### Analysis Status")
+    st.sidebar.success("✅ Risk analysis running automatically")
     
     # Quick Reference
     with st.sidebar.expander("📋 Quick Reference", expanded=False):
@@ -700,6 +701,14 @@ def main():
         value=0.8,
         help="💡 Cede Rate: The percentage of losses above the attachment point that are transferred to the reinsurer. 80% means the reinsurer covers 80% of losses above the threshold."
     )
+    
+    # Create a unique key for this configuration
+    config_key = f"{attachment_point}_{portfolio_size}_{region}_{climate_amp}_{cede_rate}"
+    
+    # Check if we need to run analysis
+    if st.session_state.get('last_config') != config_key:
+        st.session_state.last_config = config_key
+        st.session_state.analysis_run = True
     
     # Load and preprocess data
     with st.spinner("Loading and preprocessing data..."):
