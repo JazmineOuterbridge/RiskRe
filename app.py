@@ -222,10 +222,11 @@ def train_models(X, y_classification, y_regression):
     xgb_grid.fit(X_train, y_class_train)
     xgb_model = xgb_grid.best_estimator_
     
-    # Ensemble classifier
+    # Ensemble classifier (fixed - use RandomForestClassifier for classification)
+    from sklearn.ensemble import RandomForestClassifier
     ensemble_classifier = VotingClassifier([
         ('xgb', xgb_model),
-        ('rf', RandomForestRegressor(random_state=42, n_estimators=100)),
+        ('rf', RandomForestClassifier(random_state=42, n_estimators=100)),
         ('lr', LogisticRegression(random_state=42, max_iter=1000))
     ], voting='soft')
     ensemble_classifier.fit(X_train, y_class_train)
@@ -242,7 +243,7 @@ def train_models(X, y_classification, y_regression):
     rf_grid.fit(X_train, y_reg_train)
     rf_model = rf_grid.best_estimator_
     
-    # Ensemble regressor
+    # Ensemble regressor (fixed - use XGBRegressor for regression)
     ensemble_regressor = VotingRegressor([
         ('rf', rf_model),
         ('xgb', xgb.XGBRegressor(random_state=42, eval_metric='rmse'))
