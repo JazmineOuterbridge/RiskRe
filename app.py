@@ -110,7 +110,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-@st.cache_data
+@st.cache_data(ttl=3600)  # Cache for 1 hour
 def load_and_preprocess_data():
     """Load and preprocess insurance and hurricane data"""
     try:
@@ -188,7 +188,7 @@ def prepare_features(df, attachment_point, cede_rate=0.8):
     
     return X, y_classification, y_regression, df_encoded
 
-@st.cache_data
+@st.cache_data(ttl=1800)  # Cache for 30 minutes
 def train_models(X, y_classification, y_regression):
     """Train advanced ML models with cross-validation and ensemble methods"""
     from sklearn.model_selection import GridSearchCV
@@ -639,7 +639,10 @@ def main():
     
     # Simulation runs automatically
     st.sidebar.markdown("### Analysis Status")
-    st.sidebar.success("✅ Risk analysis running automatically")
+    if st.session_state.get('analysis_run', False):
+        st.sidebar.success("✅ Analysis complete")
+    else:
+        st.sidebar.info("🔄 Ready to analyze")
     
     # Quick Reference
     with st.sidebar.expander("📋 Quick Reference", expanded=False):
@@ -710,9 +713,8 @@ def main():
         st.session_state.last_config = config_key
         st.session_state.analysis_run = True
     
-    # Load and preprocess data
-    with st.spinner("Loading and preprocessing data..."):
-        df = load_and_preprocess_data()
+    # Load and preprocess data (cached)
+    df = load_and_preprocess_data()
     
     # Filter data by region
     df_filtered = df[df['region'] == region].copy()
