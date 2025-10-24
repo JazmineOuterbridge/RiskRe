@@ -763,7 +763,7 @@ def main():
         Always consult with qualified actuaries and risk professionals for real-world applications.
         """)
     
-    # Comprehensive Glossary for All Users
+    # Comprehensive Glossary for All Users (Separate from About section)
     with st.expander("📚 Complete Glossary - Understanding Everything in ReRisk AI", expanded=False):
         st.markdown("""
         **🏢 Reinsurance Fundamentals:**
@@ -796,6 +796,7 @@ def main():
         - **Building Type**: Single family, multi-family, commercial, industrial - different vulnerabilities
         
         **🤖 Machine Learning & Analytics:**
+        - **Advanced ML Pipeline**: XGBoost classification + Random Forest regression with ensemble methods
         - **XGBoost**: Advanced machine learning algorithm for classification and regression
         - **Random Forest**: Ensemble learning method that combines multiple decision trees
         - **Ensemble Methods**: Combining multiple models for better predictions
