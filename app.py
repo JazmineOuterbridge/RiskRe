@@ -238,6 +238,18 @@ def load_and_preprocess_data():
             if col not in df.columns:
                 df[col] = np.random.uniform(0.1, 0.8, len(df))
         
+        # Ensure cat_exposure column exists
+        if 'cat_exposure' not in df.columns:
+            st.warning("⚠️ cat_exposure column missing. Adding default values...")
+            cat_exposure_map = {
+                'northeast': 1.0,
+                'southeast': 1.5,
+                'northwest': 1.2,
+                'southwest': 1.3,
+                'south': 1.4
+            }
+            df['cat_exposure'] = df['region'].map(cat_exposure_map).fillna(1.2)
+        
         # Ensure we have enough data for analysis
         if len(df) < 100:
             st.warning("⚠️ Insufficient data. Generating comprehensive demo dataset...")
@@ -1095,7 +1107,10 @@ def main():
     
     # Apply climate amplification
     if climate_amp > 0:
-        df_filtered['cat_exposure'] *= (1 + climate_amp / 100)
+        if 'cat_exposure' in df_filtered.columns:
+            df_filtered['cat_exposure'] *= (1 + climate_amp / 100)
+        else:
+            st.warning("⚠️ cat_exposure column not found. Climate amplification not applied.")
     
     # Prepare features
     X, y_class, y_reg, df_processed = prepare_features(df_filtered, attachment_point * 1000000, cede_rate)
@@ -1119,8 +1134,8 @@ def main():
     
     # Calculate portfolio-level predictions
     portfolio_exposure = portfolio_size * 1000000  # Convert to actual dollars
-    avg_risk_score = df_filtered['risk_score'].mean()
-    avg_cat_exposure = df_filtered['cat_exposure'].mean()
+    avg_risk_score = df_filtered['risk_score'].mean() if 'risk_score' in df_filtered.columns else 0.5
+    avg_cat_exposure = df_filtered['cat_exposure'].mean() if 'cat_exposure' in df_filtered.columns else 1.2
     
     # Scale predictions to portfolio size with better scaling
     sample_features = X.mean().values.reshape(1, -1)
