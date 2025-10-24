@@ -110,26 +110,73 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+def create_demo_cat_data():
+    """Create demo CAT data for demonstration purposes"""
+    np.random.seed(42)
+    n_samples = 1000
+    
+    # Generate demo CAT insurance data
+    df = pd.DataFrame({
+        'property_age': np.random.normal(25, 15, n_samples).clip(1, 100),
+        'building_type': np.random.choice(['single_family', 'multi_family', 'commercial', 'industrial'], n_samples),
+        'construction_quality': np.random.normal(0.7, 0.2, n_samples).clip(0.1, 1.0),
+        'stories': np.random.poisson(2, n_samples).clip(1, 20),
+        'distance_to_coast': np.random.exponential(50, n_samples).clip(0, 200),
+        'elevation': np.random.normal(100, 200, n_samples).clip(0, 2000),
+        'region': np.random.choice(['northeast', 'southeast', 'northwest', 'southwest', 'south'], n_samples),
+        'charges': np.random.lognormal(8, 1, n_samples) * 1000,  # Base CAT charges
+        'property_value': np.random.normal(300000, 150000, n_samples).clip(50000, 2000000)
+    })
+    
+    # Calculate risk score
+    df['risk_score'] = (
+        (df['property_age'] / 100) + 
+        (1 - df['construction_quality']) + 
+        (df['stories'] / 20) + 
+        (1 / (df['distance_to_coast'] + 1)) + 
+        (1 / (df['elevation'] + 1))
+    ) / 5
+    
+    return df
+
 @st.cache_data(ttl=3600)  # Cache for 1 hour
 def load_and_preprocess_data():
     """Load and preprocess insurance and hurricane data"""
     try:
         # Load insurance data
-        df_insurance = pd.read_csv('data/insurance2.csv')
+        try:
+            df_insurance = pd.read_csv('data/insurance2.csv')
+        except FileNotFoundError:
+            # Create demo CAT data if file not found
+            st.warning("CAT data not found. Generating demo data...")
+            df_insurance = create_demo_cat_data()
         
-        # Risk score is already calculated in the CAT data
-        # df_insurance['risk_score'] is already present
+        # Ensure we have the required columns for the app
+        if 'risk_score' not in df_insurance.columns:
+            # Calculate risk score if not present
+            df_insurance['risk_score'] = (
+                (df_insurance['property_age'] / 100) + 
+                (1 - df_insurance['construction_quality']) + 
+                (df_insurance['stories'] / 20) + 
+                (1 / (df_insurance['distance_to_coast'] + 1)) + 
+                (1 / (df_insurance['elevation'] + 1))
+            ) / 5
         
         # Load hurricane data (simulated if not available)
         try:
             df_hurricanes = pd.read_csv('data/hurricanes.csv')
         except FileNotFoundError:
             # Create simulated hurricane data
-            regions = ['north', 'south', 'east', 'west']
+            regions = ['northeast', 'southeast', 'northwest', 'southwest', 'south']
             df_hurricanes = pd.DataFrame({
                 'region': regions,
-                'cat_exposure': [1.0, 1.5, 1.2, 1.1],  # South has highest exposure
-                'hurricane_frequency': [0.1, 0.8, 0.3, 0.2]
+                'cat_exposure': [1.0, 1.4, 1.1, 1.2, 1.5],  # South has highest exposure
+                'hurricane_frequency': [0.1, 0.7, 0.2, 0.3, 0.8],
+                'hurricane_risk': [0.2, 0.9, 0.3, 0.4, 0.95],
+                'earthquake_risk': [0.1, 0.2, 0.8, 0.6, 0.3],
+                'fire_following_risk': [0.3, 0.6, 0.4, 0.5, 0.7],
+                'scs_risk': [0.4, 0.8, 0.2, 0.6, 0.9],
+                'wildfire_risk': [0.1, 0.3, 0.2, 0.8, 0.4]
             })
         
         # Merge datasets
@@ -165,11 +212,19 @@ def load_and_preprocess_data():
 @st.cache_data
 def prepare_features(df, attachment_point, cede_rate=0.8):
     """Prepare features for ML models"""
-    # Calculate ceded losses
-    df['ceded_loss'] = np.maximum(df['charges'] - attachment_point, 0) * cede_rate
+    # Calculate ceded losses for property CAT insurance
+    # CAT charges are based on property value and risk factors
+    df['cat_charges'] = df['property_value'] * df['risk_score'] * df['cat_exposure'] * 0.01  # 1% of property value
+    df['ceded_loss'] = np.maximum(df['cat_charges'] - attachment_point, 0) * cede_rate
     
-    # Create high-risk binary target
-    df['high_risk'] = (df['charges'] > 10000).astype(int)
+    # Create high-risk binary target based on CAT risk factors
+    # High risk = high property age, poor construction, close to coast, low elevation
+    df['high_risk'] = (
+        (df['property_age'] > 50) | 
+        (df['construction_quality'] < 0.5) | 
+        (df['distance_to_coast'] < 10) | 
+        (df['elevation'] < 50)
+    ).astype(int)
     
     # Prepare features (CAT-specific)
     feature_cols = ['property_age', 'construction_quality', 'stories', 'distance_to_coast', 
@@ -531,9 +586,10 @@ def main():
     with st.expander("ℹ️ About ReRisk AI - Click to expand", expanded=False):
         st.markdown("""
         ### What is ReRisk AI?
-        ReRisk AI is an advanced catastrophe risk forecasting tool designed for reinsurance professionals. 
+        ReRisk AI is an advanced property catastrophe risk forecasting tool designed for reinsurance professionals. 
         It uses machine learning models to predict expected losses, calculate risk metrics, and suggest 
-        optimal reinsurance premiums for natural catastrophes like hurricanes and earthquakes.
+        optimal reinsurance premiums for property catastrophe risks including hurricanes, earthquakes, 
+        fire following, severe convective storms, and wildfires.
         
         ### Why This Tool is Useful:
         **For Reinsurance Companies:**
@@ -620,13 +676,13 @@ def main():
         
         st.markdown("### Methodology:")
         st.markdown("""
-        **Data Sources**: 5,000+ insurance records with regional catastrophe exposure data
+        **Data Sources**: 10,000+ property records with catastrophe risk factors
         
         **Machine Learning Pipeline**:
-        1. **Feature Engineering**: Risk scores, ceded losses, catastrophe exposure multipliers
+        1. **Feature Engineering**: Property age, construction quality, distance to coast, elevation, building type
         2. **Model Training**: XGBoost for high-risk classification, Random Forest for loss prediction
         3. **Risk Simulation**: Monte Carlo analysis with 1,000 iterations
-        4. **Premium Calculation**: Loss prediction × (1 + expense ratio + profit margin)
+        4. **Premium Calculation**: Property value × risk score × catastrophe exposure × loading factors
         
         **Regional Risk Factors**:
         - **South/Southeast**: High hurricane exposure (1.4-1.5x multiplier)
@@ -773,10 +829,19 @@ def main():
     avg_risk_score = df_filtered['risk_score'].mean()
     avg_cat_exposure = df_filtered['cat_exposure'].mean()
     
-    # Scale predictions to portfolio size
+    # Scale predictions to portfolio size with better scaling
     sample_features = X.mean().values.reshape(1, -1)
     predicted_loss_rate = rf_model.predict(sample_features)[0]
-    predicted_loss = predicted_loss_rate * (portfolio_size / 10)  # Scale to portfolio size
+    
+    # Better scaling based on portfolio size and region
+    regional_multipliers = {
+        'south': 1.5, 'southeast': 1.4, 'southwest': 1.2, 
+        'northwest': 1.1, 'northeast': 1.0
+    }
+    regional_mult = regional_multipliers.get(region, 1.0)
+    
+    # Scale by portfolio size and regional risk
+    predicted_loss = predicted_loss_rate * (portfolio_size / 50) * regional_mult * 1000000
     
     # Monte Carlo simulation
     simulated_losses, var_99, es_99, pml, aal, tvar, confidence_interval = monte_carlo_simulation(predicted_loss)
