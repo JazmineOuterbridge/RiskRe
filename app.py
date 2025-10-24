@@ -397,7 +397,9 @@ def prepare_features(df, attachment_point, cede_rate=0.8):
     
     # Add some extreme events for more realistic historical data
     extreme_indices = np.random.choice(len(df), size=int(len(df) * 0.05), replace=False)
-    df.loc[extreme_indices, 'ceded_loss'] *= np.random.uniform(2.0, 5.0, len(extreme_indices))
+    extreme_multipliers = np.random.uniform(2.0, 5.0, len(extreme_indices))
+    for i, idx in enumerate(extreme_indices):
+        df.at[idx, 'ceded_loss'] *= extreme_multipliers[i]
     
     # Historical data processed successfully - no need to show technical details to users
     
