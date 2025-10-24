@@ -127,9 +127,6 @@ def create_demo_cat_data():
         'property_value': np.random.normal(300000, 150000, n_samples).clip(50000, 2000000)
     })
     
-    # Calculate realistic CAT charges based on property value and risk
-    df['charges'] = df['property_value'] * 0.02  # 2% of property value for CAT insurance
-    
     # Calculate risk score
     df['risk_score'] = (
         (df['property_age'] / 100) + 
@@ -138,6 +135,50 @@ def create_demo_cat_data():
         (1 / (df['distance_to_coast'] + 1)) + 
         (1 / (df['elevation'] + 1))
     ) / 5
+    
+    # Add CAT exposure multipliers by region
+    cat_exposure_map = {
+        'northeast': 1.0,
+        'southeast': 1.5,  # Higher hurricane risk
+        'northwest': 1.2,  # Earthquake risk
+        'southwest': 1.3,  # Wildfire risk
+        'south': 1.4       # Hurricane and flood risk
+    }
+    df['cat_exposure'] = df['region'].map(cat_exposure_map)
+    
+    # Calculate realistic CAT charges based on property value and risk
+    df['charges'] = df['property_value'] * df['risk_score'] * df['cat_exposure'] * 0.01  # 1% of property value
+    
+    # Add peril-specific risk factors
+    df['hurricane_risk'] = np.where(
+        df['region'].isin(['southeast', 'south']), 
+        np.random.uniform(0.6, 0.95, n_samples),
+        np.random.uniform(0.1, 0.4, n_samples)
+    )
+    
+    df['earthquake_risk'] = np.where(
+        df['region'].isin(['northwest', 'southwest']), 
+        np.random.uniform(0.5, 0.9, n_samples),
+        np.random.uniform(0.1, 0.3, n_samples)
+    )
+    
+    df['fire_following_risk'] = np.where(
+        df['region'].isin(['southwest', 'south']), 
+        np.random.uniform(0.4, 0.8, n_samples),
+        np.random.uniform(0.2, 0.5, n_samples)
+    )
+    
+    df['scs_risk'] = np.where(
+        df['region'].isin(['southeast', 'south']), 
+        np.random.uniform(0.5, 0.9, n_samples),
+        np.random.uniform(0.2, 0.6, n_samples)
+    )
+    
+    df['wildfire_risk'] = np.where(
+        df['region'].isin(['southwest', 'northwest']), 
+        np.random.uniform(0.4, 0.8, n_samples),
+        np.random.uniform(0.1, 0.4, n_samples)
+    )
     
     return df
 
@@ -236,7 +277,20 @@ def get_regional_historical_events(df_events, region, event_type=None):
 
 @st.cache_data
 def prepare_features(df, attachment_point, cede_rate=0.8):
-    """Prepare features for ML models"""
+    """Prepare features for ML models with robust error handling"""
+    # Ensure all required columns exist
+    required_cols = ['property_value', 'risk_score', 'cat_exposure']
+    missing_cols = [col for col in required_cols if col not in df.columns]
+    
+    if missing_cols:
+        st.warning(f"⚠️ Missing required columns: {missing_cols}. Adding default values.")
+        if 'property_value' not in df.columns:
+            df['property_value'] = np.random.normal(300000, 150000, len(df)).clip(50000, 2000000)
+        if 'risk_score' not in df.columns:
+            df['risk_score'] = np.random.uniform(0.1, 0.9, len(df))
+        if 'cat_exposure' not in df.columns:
+            df['cat_exposure'] = np.random.uniform(1.0, 1.5, len(df))
+    
     # Calculate ceded losses for property CAT insurance
     # CAT charges are based on property value and risk factors
     df['cat_charges'] = df['property_value'] * df['risk_score'] * df['cat_exposure'] * 0.01  # 1% of property value
