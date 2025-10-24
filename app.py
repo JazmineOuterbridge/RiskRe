@@ -189,7 +189,7 @@ def load_and_preprocess_data():
         # Load insurance data
         try:
             df_insurance = pd.read_csv('data/insurance2.csv')
-            st.info(f"📊 Loaded CSV with {len(df_insurance)} rows and {len(df_insurance.columns)} columns")
+            # CSV loaded successfully - no need to show technical details to users
             
             # Check if we have all required columns
             required_cols = ['property_age', 'building_type', 'construction_quality', 'stories', 
@@ -213,7 +213,7 @@ def load_and_preprocess_data():
                     st.warning(f"⚠️ Could not regenerate data: {str(e)}. Using fallback demo data.")
                     df_insurance = create_demo_cat_data()
             else:
-                st.success("✅ Loaded comprehensive demo insurance data")
+                # Demo data loaded successfully - no need to show technical details to users
         except FileNotFoundError:
             # Create demo CAT data if file not found
             st.warning("⚠️ Insurance data not found. Generating comprehensive demo data...")
@@ -236,7 +236,7 @@ def load_and_preprocess_data():
         # Load hurricane data (simulated if not available)
         try:
             df_hurricanes = pd.read_csv('data/hurricanes.csv')
-            st.success("✅ Loaded comprehensive demo hurricane/catastrophe data")
+            # Hurricane data loaded successfully - no need to show technical details to users
         except FileNotFoundError:
             # Create simulated hurricane data
             st.warning("⚠️ Hurricane data not found. Generating demo data...")
@@ -255,7 +255,7 @@ def load_and_preprocess_data():
         # Merge datasets
         try:
             df = df_insurance.merge(df_hurricanes, on='region', how='left')
-            st.info("✅ Successfully merged insurance and hurricane data")
+            # Data merged successfully - no need to show technical details to users
         except Exception as merge_error:
             st.warning(f"⚠️ Merge failed: {str(merge_error)}. Using insurance data only.")
             df = df_insurance.copy()
@@ -277,7 +277,7 @@ def load_and_preprocess_data():
         # Handle missing values
         try:
             df = df.fillna(0)
-            st.info("✅ Successfully handled missing values")
+            # Missing values handled successfully - no need to show technical details to users
         except Exception as fillna_error:
             st.warning(f"⚠️ Fillna failed: {str(fillna_error)}. Continuing with data as-is.")
         
@@ -287,7 +287,7 @@ def load_and_preprocess_data():
             for col in peril_columns:
                 if col not in df.columns:
                     df[col] = np.random.uniform(0.1, 0.8, len(df))
-            st.info("✅ Successfully added peril risk columns")
+            # Peril risk columns added successfully - no need to show technical details to users
         except Exception as peril_error:
             st.warning(f"⚠️ Peril columns failed: {str(peril_error)}. Continuing with available data.")
         
@@ -320,7 +320,7 @@ def load_and_preprocess_data():
             st.warning("⚠️ Insufficient data. Generating comprehensive demo dataset...")
             df = create_demo_cat_data()
         
-        st.info(f"📊 Loaded {len(df)} property records for analysis")
+        # Data loading completed successfully - no need to show technical details to users
         return df
     except Exception as e:
         # Create comprehensive demo data if anything fails
@@ -393,7 +393,7 @@ def prepare_features(df, attachment_point, cede_rate=0.8):
     # Add some variation to make historical data more realistic
     df['ceded_loss'] = df['ceded_loss'] * np.random.uniform(0.8, 1.2, len(df))
     
-    st.info(f"📊 Historical data: {len(df[df['ceded_loss'] > 0])} policies with ceded losses, average: ${df['ceded_loss'].mean():,.0f}")
+    # Historical data processed successfully - no need to show technical details to users
     
     # Create high-risk binary target based on CAT risk factors
     # High risk = high property age, poor construction, close to coast, low elevation
@@ -1229,21 +1229,21 @@ def main():
     X, y_class, y_reg, df_processed = prepare_features(df_filtered, attachment_point * 1000000, cede_rate)
     
     # Train models
-    with st.spinner("Training ML models..."):
-        try:
-            xgb_model, rf_model, auc_score, mse, feature_names = train_models(X, y_class, y_reg)
-        except Exception as e:
-            st.error(f"Model training failed: {str(e)}")
-            st.info("Using simplified models for demonstration...")
-            # Fallback to simple models
-            from sklearn.linear_model import LogisticRegression, LinearRegression
-            xgb_model = LogisticRegression(random_state=42)
-            rf_model = LinearRegression()
-            xgb_model.fit(X, y_class)
-            rf_model.fit(X, y_reg)
-            auc_score = 0.5  # Random baseline
-            mse = 0
-            feature_names = X.columns
+    # Train models silently without showing spinner to users
+    try:
+        xgb_model, rf_model, auc_score, mse, feature_names = train_models(X, y_class, y_reg)
+    except Exception as e:
+        st.error(f"Model training failed: {str(e)}")
+        st.info("Using simplified models for demonstration...")
+        # Fallback to simple models
+        from sklearn.linear_model import LogisticRegression, LinearRegression
+        xgb_model = LogisticRegression(random_state=42)
+        rf_model = LinearRegression()
+        xgb_model.fit(X, y_class)
+        rf_model.fit(X, y_reg)
+        auc_score = 0.5  # Random baseline
+        mse = 0
+        feature_names = X.columns
     
     # Calculate portfolio-level predictions
     portfolio_exposure = portfolio_size * 1000000  # Convert to actual dollars
