@@ -532,7 +532,14 @@ def create_shap_plot(model, X_sample, feature_names):
                 
                 # Ensure we have the right number of values
                 if len(mean_shap) != len(feature_names):
-                    raise ValueError(f"SHAP values length {len(mean_shap)} doesn't match features {len(feature_names)}")
+                    st.warning(f"SHAP values length {len(mean_shap)} doesn't match features {len(feature_names)}. Adjusting feature names.")
+                    # Truncate or pad feature names to match SHAP values
+                    if len(mean_shap) < len(feature_names):
+                        feature_names = feature_names[:len(mean_shap)]
+                    else:
+                        # Pad with generic names if SHAP values are longer
+                        while len(feature_names) < len(mean_shap):
+                            feature_names.append(f"feature_{len(feature_names)}")
                 
             except Exception as shap_error:
                 st.warning(f"TreeExplainer failed: {str(shap_error)}. Trying KernelExplainer...")
@@ -561,7 +568,14 @@ def create_shap_plot(model, X_sample, feature_names):
                 
                 # Ensure we have the right number of values
                 if len(mean_shap) != len(feature_names):
-                    raise ValueError(f"SHAP values length {len(mean_shap)} doesn't match features {len(feature_names)}")
+                    st.warning(f"SHAP values length {len(mean_shap)} doesn't match features {len(feature_names)}. Adjusting feature names.")
+                    # Truncate or pad feature names to match SHAP values
+                    if len(mean_shap) < len(feature_names):
+                        feature_names = feature_names[:len(mean_shap)]
+                    else:
+                        # Pad with generic names if SHAP values are longer
+                        while len(feature_names) < len(mean_shap):
+                            feature_names.append(f"feature_{len(feature_names)}")
                 
             except Exception as kernel_error:
                 st.warning(f"KernelExplainer failed: {str(kernel_error)}. Falling back to model coefficients.")
@@ -606,7 +620,7 @@ def create_shap_plot(model, X_sample, feature_names):
             
             # Ensure importance array matches feature names
             if len(importance) != len(feature_names):
-                st.warning(f"Model coefficients length {len(importance)} doesn't match features {len(feature_names)}. Using available coefficients.")
+                st.warning(f"Model coefficients length {len(importance)} doesn't match features {len(feature_names)}. Adjusting to match.")
                 min_len = min(len(importance), len(feature_names))
                 importance = importance[:min_len]
                 feature_names = feature_names[:min_len]
