@@ -214,6 +214,7 @@ def load_and_preprocess_data():
                     df_insurance = create_demo_cat_data()
             else:
                 # Demo data loaded successfully - no need to show technical details to users
+                pass
         except FileNotFoundError:
             # Create demo CAT data if file not found
             st.warning("⚠️ Insurance data not found. Generating comprehensive demo data...")
