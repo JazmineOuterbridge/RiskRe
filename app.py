@@ -428,28 +428,82 @@ def create_risk_map(df, region_filter):
     return m
 
 def create_shap_plot(model, X_sample, feature_names):
-    """Create SHAP explanation plot"""
+    """Create SHAP explanation plot with robust error handling"""
     try:
+        # Validate inputs
+        if X_sample is None or len(X_sample) == 0:
+            raise ValueError("Empty or None X_sample provided")
+        
+        if feature_names is None or len(feature_names) == 0:
+            raise ValueError("Empty or None feature_names provided")
+        
+        # Ensure X_sample and feature_names have matching dimensions
+        if X_sample.shape[1] != len(feature_names):
+            st.warning(f"Feature dimension mismatch: X_sample has {X_sample.shape[1]} features, but {len(feature_names)} feature names provided. Using available features.")
+            # Truncate to match
+            min_features = min(X_sample.shape[1], len(feature_names))
+            X_sample = X_sample.iloc[:, :min_features] if hasattr(X_sample, 'iloc') else X_sample[:, :min_features]
+            feature_names = feature_names[:min_features]
+        
         # Check if model is tree-based (XGBoost, RandomForest, etc.)
         model_type = type(model).__name__
         
         if model_type in ['XGBClassifier', 'XGBRegressor', 'RandomForestClassifier', 'RandomForestRegressor']:
             # Use TreeExplainer for tree-based models
-            explainer = shap.TreeExplainer(model)
-            shap_values = explainer.shap_values(X_sample)
+            try:
+                explainer = shap.TreeExplainer(model)
+                shap_values = explainer.shap_values(X_sample)
+                
+                # Handle different SHAP value shapes
+                if isinstance(shap_values, list):
+                    # Multi-class classification
+                    shap_values = np.array(shap_values)
+                
+                if len(shap_values.shape) > 2:
+                    # For multi-class, take mean across classes
+                    mean_shap = np.abs(shap_values).mean(axis=(0, 1))
+                else:
+                    # For regression or single class
+                    mean_shap = np.abs(shap_values).mean(0)
+                
+                # Ensure we have the right number of values
+                if len(mean_shap) != len(feature_names):
+                    raise ValueError(f"SHAP values length {len(mean_shap)} doesn't match features {len(feature_names)}")
+                
+            except Exception as shap_error:
+                st.warning(f"TreeExplainer failed: {str(shap_error)}. Trying KernelExplainer...")
+                raise shap_error
         else:
             # Use KernelExplainer for non-tree models (LogisticRegression, LinearRegression, etc.)
-            explainer = shap.KernelExplainer(model.predict_proba if hasattr(model, 'predict_proba') else model.predict, X_sample)
-            shap_values = explainer.shap_values(X_sample)
+            try:
+                # Create a background dataset for KernelExplainer
+                background = X_sample.sample(min(50, len(X_sample))) if len(X_sample) > 50 else X_sample
+                
+                if hasattr(model, 'predict_proba'):
+                    explainer = shap.KernelExplainer(model.predict_proba, background)
+                else:
+                    explainer = shap.KernelExplainer(model.predict, background)
+                
+                shap_values = explainer.shap_values(X_sample)
+                
+                # Handle different SHAP value shapes
+                if isinstance(shap_values, list):
+                    shap_values = np.array(shap_values)
+                
+                if len(shap_values.shape) > 2:
+                    mean_shap = np.abs(shap_values).mean(axis=(0, 1))
+                else:
+                    mean_shap = np.abs(shap_values).mean(0)
+                
+                # Ensure we have the right number of values
+                if len(mean_shap) != len(feature_names):
+                    raise ValueError(f"SHAP values length {len(mean_shap)} doesn't match features {len(feature_names)}")
+                
+            except Exception as kernel_error:
+                st.warning(f"KernelExplainer failed: {str(kernel_error)}. Falling back to model coefficients.")
+                raise kernel_error
         
-        # Create bar plot
-        if len(shap_values.shape) > 2:
-            # For classification, take mean across classes
-            mean_shap = np.abs(shap_values).mean(axis=(0, 1))
-        else:
-            # For regression or single class
-            mean_shap = np.abs(shap_values).mean(0)
-        
+        # Create bar plot with SHAP values
         feature_importance = pd.DataFrame({
             'feature': feature_names,
             'importance': mean_shap
@@ -471,31 +525,55 @@ def create_shap_plot(model, X_sample, feature_names):
         # Fallback: create a simple feature importance plot
         st.warning(f"SHAP analysis failed: {str(e)}. Showing model coefficients instead.")
         
-        # Try to get feature importance from model
-        if hasattr(model, 'feature_importances_'):
-            importance = model.feature_importances_
-        elif hasattr(model, 'coef_'):
-            importance = np.abs(model.coef_[0] if len(model.coef_.shape) > 1 else model.coef_)
-        else:
-            # Random importance as fallback
-            importance = np.random.random(len(feature_names))
-        
-        feature_importance = pd.DataFrame({
-            'feature': feature_names,
-            'importance': importance
-        }).sort_values('importance', ascending=True)
-        
-        fig = px.bar(
-            feature_importance, 
-            x='importance', 
-            y='feature',
-            orientation='h',
-            title='Feature Importance (Model Coefficients)',
-            color='importance',
-            color_continuous_scale='Reds'
-        )
-        
-        return fig
+        try:
+            # Try to get feature importance from model
+            if hasattr(model, 'feature_importances_'):
+                importance = model.feature_importances_
+            elif hasattr(model, 'coef_'):
+                coef = model.coef_
+                if len(coef.shape) > 1:
+                    # Multi-class or multi-output
+                    importance = np.abs(coef).mean(axis=0)
+                else:
+                    importance = np.abs(coef)
+            else:
+                # Random importance as fallback
+                importance = np.random.random(len(feature_names))
+            
+            # Ensure importance array matches feature names
+            if len(importance) != len(feature_names):
+                st.warning(f"Model coefficients length {len(importance)} doesn't match features {len(feature_names)}. Using available coefficients.")
+                min_len = min(len(importance), len(feature_names))
+                importance = importance[:min_len]
+                feature_names = feature_names[:min_len]
+            
+            feature_importance = pd.DataFrame({
+                'feature': feature_names,
+                'importance': importance
+            }).sort_values('importance', ascending=True)
+            
+            fig = px.bar(
+                feature_importance, 
+                x='importance', 
+                y='feature',
+                orientation='h',
+                title='Feature Importance (Model Coefficients)',
+                color='importance',
+                color_continuous_scale='Reds'
+            )
+            
+            return fig
+            
+        except Exception as fallback_error:
+            st.error(f"All explainability methods failed: {str(fallback_error)}")
+            # Return empty plot as last resort
+            fig = px.bar(
+                pd.DataFrame({'feature': ['No data'], 'importance': [0]}),
+                x='importance',
+                y='feature',
+                title='Feature Importance (No Data Available)'
+            )
+            return fig
 
 def generate_pdf_report(portfolio_size, region, predicted_loss, var_99, es_99, optimal_premium, risk_level, loading_factor):
     """Generate PDF report for the risk assessment"""
