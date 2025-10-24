@@ -1,0 +1,67 @@
+event_type,name,year,region,damage,location,severity,affected_population
+hurricane,Idalia,2023,southeast,2.5,Florida,3.0,-55341.104748199425
+hurricane,Hilary,2023,southwest,0.8,California,4.0,-58741.80452535141
+hurricane,Lee,2023,northeast,1.2,Nova Scotia,5.0,-21585.058837131357
+hurricane,Ian,2022,southeast,112.9,Florida,5.0,50143.83939249545
+hurricane,Fiona,2022,northeast,2.3,Puerto Rico,4.0,-50115.78652297578
+hurricane,Nicole,2022,southeast,0.5,Florida,1.0,-7495.389143429434
+hurricane,Ida,2021,southeast,75.0,Louisiana,4.0,78715.99873543563
+hurricane,Henri,2021,northeast,0.8,Rhode Island,1.0,-37474.72245981492
+hurricane,Elsa,2021,southeast,0.3,Florida,1.0,60369.787110946236
+hurricane,Laura,2020,south,19.2,Louisiana,4.0,21663.488592042668
+hurricane,Sally,2020,southeast,7.3,Alabama,2.0,4349.187212468995
+hurricane,Delta,2020,south,2.9,Louisiana,2.0,29320.666595816994
+hurricane,Dorian,2019,southeast,3.4,Bahamas,5.0,20106.311861658498
+hurricane,Barry,2019,south,0.6,Louisiana,1.0,-62534.90474227601
+hurricane,Michael,2018,southeast,25.1,Florida,5.0,56443.036639923695
+hurricane,Florence,2018,southeast,24.2,North Carolina,4.0,-9683.58897265081
+hurricane,Harvey,2017,south,125.0,Texas,4.0,72448.93479772515
+hurricane,Irma,2017,southeast,50.0,Florida,5.0,87709.04823547065
+hurricane,Maria,2017,southeast,91.6,Puerto Rico,5.0,51880.69858883929
+hurricane,Matthew,2016,southeast,10.3,South Carolina,5.0,-17363.558553832918
+hurricane,Hermine,2016,southeast,0.5,Florida,1.0,-51472.636623029655
+earthquake,Turkey-Syria,2023,international,84.0,Turkey,7.8,776.2685762976353
+earthquake,Morocco,2023,international,5.5,Morocco,6.8,768.1479528687196
+earthquake,Afghanistan,2022,international,0.8,Afghanistan,5.9,659.9515737508221
+earthquake,Haiti,2021,international,1.6,Haiti,7.2,799.962454982844
+earthquake,Croatia,2020,international,0.5,Croatia,6.4,671.0383186217799
+earthquake,Alaska,2019,northwest,0.1,Alaska,7.1,749.43025852201
+earthquake,Indonesia,2018,international,0.5,Indonesia,7.5,744.4799630692776
+earthquake,Mexico,2017,international,2.0,Mexico,8.2,897.7129299890452
+earthquake,Italy,2016,international,0.5,Italy,6.2,709.2633909171215
+earthquake,Nepal,2015,international,10.0,Nepal,7.8,746.50199697789
+earthquake,Ridgecrest,2019,southwest,0.1,California,7.1,632.8550373673205
+earthquake,Napa Valley,2014,southwest,0.4,California,6.0,622.9750460436145
+earthquake,Virginia,2011,northeast,0.2,Virginia,5.8,564.5272654569644
+earthquake,Alaska,2018,northwest,0.1,Alaska,7.1,809.0781655263067
+wildfire,Maui Lahaina,2023,southwest,5.5,Hawaii,2.1,349.97014183462255
+wildfire,Canadian Wildfires,2023,northwest,0.5,Canada,45000.0,1349888.3920082962
+wildfire,Mosquito Fire,2022,southwest,0.1,California,76.0,2493.793643272076
+wildfire,McKinney Fire,2022,southwest,0.1,California,60.0,1661.7570189199685
+wildfire,Dixie Fire,2021,southwest,1.5,California,963.0,28977.175569532636
+wildfire,Caldor Fire,2021,southwest,0.5,California,221.0,6656.747902258784
+wildfire,August Complex,2020,southwest,0.5,California,1030.0,30906.158897493937
+wildfire,Creek Fire,2020,southwest,0.2,California,380.0,11159.331753199065
+wildfire,Kincade Fire,2019,southwest,0.1,California,77.0,2451.6478452389533
+wildfire,Saddleridge Fire,2019,southwest,0.1,California,8.0,462.1654941966384
+wildfire,Camp Fire,2018,southwest,16.5,California,153.0,4397.17976492544
+wildfire,Woolsey Fire,2018,southwest,3.0,California,97.0,2931.9949701668456
+wildfire,Tubbs Fire,2017,southwest,1.2,California,36.0,1388.753268422021
+wildfire,Thomas Fire,2017,southwest,0.5,California,281.0,8065.856297292858
+scs,Rolling Fork Tornado,2023,south,1.1,Mississippi,59.33669159139331,20.577390563097467
+scs,Nashville Tornado,2023,southeast,0.8,Tennessee,97.60752760874003,29.663677647442512
+scs,Kentucky Tornado Outbreak,2022,south,3.9,Kentucky,104.65882538665457,40.04951867342648
+scs,Iowa Derecho,2022,northwest,0.5,Iowa,96.44775511024062,75.41417194915027
+scs,Alabama Tornado,2021,southeast,0.3,Alabama,67.29155214432791,52.99756494264275
+scs,Texas Hail Storm,2021,south,0.2,Texas,74.12321523046954,70.94159747103298
+scs,Nashville Tornado,2020,southeast,1.5,Tennessee,83.79200310436993,58.9322664437438
+scs,Iowa Derecho,2020,northwest,7.5,Iowa,58.09467655157391,47.63391298568855
+scs,Alabama Tornado,2019,southeast,0.2,Alabama,40.65003592004812,74.30618869964579
+scs,Texas Hail Storm,2019,south,0.1,Texas,74.27553837899218,84.6358131130991
+scs,Iowa Hail Storm,2018,northwest,0.3,Iowa,86.98348800393752,42.35768375744314
+scs,Texas Tornado,2018,south,0.1,Texas,69.04435686787843,33.95388034301568
+fire_following,Camp Fire Aftermath,2018,southwest,0.5,California,140.12060145625634,420.361804368769
+fire_following,Paradise Fire,2018,southwest,0.3,California,98.91634121155063,296.7490236346519
+fire_following,Santa Rosa Fire,2017,southwest,0.2,California,126.14085197218084,378.42255591654254
+fire_following,Napa Fire,2017,southwest,0.1,California,79.1725078763129,237.5175236289387
+fire_following,Sonoma Fire,2017,southwest,0.1,California,57.01490616842595,171.04471850527784

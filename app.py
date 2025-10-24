@@ -212,6 +212,31 @@ def load_and_preprocess_data():
         return df
 
 @st.cache_data
+def load_historical_events():
+    """Load historical catastrophe events"""
+    try:
+        df_events = pd.read_csv('data/historical_all_events.csv')
+        return df_events
+    except FileNotFoundError:
+        st.warning("⚠️ Historical events data not found.")
+        return pd.DataFrame()
+
+@st.cache_data
+def get_regional_historical_events(df_events, region, event_type=None):
+    """Get historical events for a specific region and event type"""
+    if df_events.empty:
+        return pd.DataFrame()
+    
+    # Filter by region
+    regional_events = df_events[df_events['region'] == region].copy()
+    
+    # Filter by event type if specified
+    if event_type:
+        regional_events = regional_events[regional_events['event_type'] == event_type]
+    
+    return regional_events
+
+@st.cache_data
 def prepare_features(df, attachment_point, cede_rate=0.8):
     """Prepare features for ML models"""
     # Calculate ceded losses for property CAT insurance
@@ -1056,6 +1081,75 @@ def main():
     - Peril Exposure: {peril_multiplier:.1%} of total risk
     """)
     
+    # Historical Events Section
+    st.markdown('<div class="section-header">📚 Historical Catastrophe Events</div>', unsafe_allow_html=True)
+    
+    # Load historical events
+    df_historical = load_historical_events()
+    
+    if not df_historical.empty:
+        # Get regional events
+        regional_events = get_regional_historical_events(df_historical, region)
+        
+        if not regional_events.empty:
+            # Filter by selected perils
+            selected_peril_types = []
+            if hurricane_risk: selected_peril_types.append('hurricane')
+            if earthquake_risk: selected_peril_types.append('earthquake')
+            if fire_following_risk: selected_peril_types.append('fire_following')
+            if scs_risk: selected_peril_types.append('scs')
+            if wildfire_risk: selected_peril_types.append('wildfire')
+            
+            if selected_peril_types:
+                filtered_events = regional_events[regional_events['event_type'].isin(selected_peril_types)]
+                
+                if not filtered_events.empty:
+                    # Display recent events
+                    recent_events = filtered_events[filtered_events['year'] >= 2020].sort_values('year', ascending=False)
+                    
+                    if not recent_events.empty:
+                        st.markdown(f"#### Recent {region.title()} Events (2020-2024)")
+                        
+                        # Create a summary table
+                        event_summary = recent_events.groupby('event_type').agg({
+                            'name': 'count',
+                            'damage': 'sum',
+                            'severity': 'mean'
+                        }).round(2)
+                        event_summary.columns = ['Event Count', 'Total Damage ($B)', 'Avg Severity']
+                        
+                        st.dataframe(event_summary, use_container_width=True)
+                        
+                        # Show individual events
+                        st.markdown("#### Individual Events")
+                        display_events = recent_events[['name', 'year', 'event_type', 'damage', 'severity', 'location']].copy()
+                        display_events.columns = ['Event Name', 'Year', 'Type', 'Damage ($B)', 'Severity', 'Location']
+                        display_events = display_events.sort_values(['year', 'damage'], ascending=[False, False])
+                        
+                        st.dataframe(display_events, use_container_width=True)
+                        
+                        # Historical context
+                        total_historical_damage = recent_events['damage'].sum()
+                        avg_annual_damage = recent_events.groupby('year')['damage'].sum().mean()
+                        
+                        st.info(f"""
+                        **Historical Context for {region.title()}:**
+                        - **Total Damage (2020-2024):** ${total_historical_damage:.1f}B
+                        - **Average Annual Damage:** ${avg_annual_damage:.1f}B
+                        - **Events Analyzed:** {len(recent_events)} recent events
+                        - **Risk Validation:** Historical data supports current risk assessment
+                        """)
+                    else:
+                        st.info(f"No recent {region.title()} events found for selected perils (2020-2024)")
+                else:
+                    st.info(f"No {region.title()} events found for selected perils")
+            else:
+                st.info("No perils selected for historical analysis")
+        else:
+            st.info(f"No historical events found for {region.title()}")
+    else:
+        st.info("Historical events data not available")
+    
     # Export and Share Section
     st.markdown('<div class="section-header">📤 Export & Share Results</div>', unsafe_allow_html=True)
     col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
@@ -1152,6 +1246,65 @@ def main():
         st.metric("Classification AUC", f"{auc_score:.3f}")
     with col2:
         st.metric("Regression MSE", f"{mse:.0f}")
+    
+    # Historical Events Visualization
+    if not df_historical.empty:
+        st.markdown('<div class="section-header">📊 Historical Events Analysis</div>', unsafe_allow_html=True)
+        
+        # Get regional events for visualization
+        regional_events = get_regional_historical_events(df_historical, region)
+        
+        if not regional_events.empty:
+            # Filter by selected perils
+            selected_peril_types = []
+            if hurricane_risk: selected_peril_types.append('hurricane')
+            if earthquake_risk: selected_peril_types.append('earthquake')
+            if fire_following_risk: selected_peril_types.append('fire_following')
+            if scs_risk: selected_peril_types.append('scs')
+            if wildfire_risk: selected_peril_types.append('wildfire')
+            
+            if selected_peril_types:
+                filtered_events = regional_events[regional_events['event_type'].isin(selected_peril_types)]
+                
+                if not filtered_events.empty:
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        # Historical damage by year
+                        yearly_damage = filtered_events.groupby('year')['damage'].sum().reset_index()
+                        fig_yearly = px.bar(
+                            yearly_damage, 
+                            x='year', 
+                            y='damage',
+                            title=f"Historical Damage by Year - {region.title()}",
+                            labels={'damage': 'Damage ($B)', 'year': 'Year'}
+                        )
+                        fig_yearly.update_layout(showlegend=False)
+                        st.plotly_chart(fig_yearly, use_container_width=True)
+                    
+                    with col2:
+                        # Damage by event type
+                        event_type_damage = filtered_events.groupby('event_type')['damage'].sum().reset_index()
+                        fig_type = px.pie(
+                            event_type_damage,
+                            values='damage',
+                            names='event_type',
+                            title=f"Damage by Event Type - {region.title()}"
+                        )
+                        st.plotly_chart(fig_type, use_container_width=True)
+                    
+                    # Historical severity trends
+                    if len(filtered_events) > 1:
+                        fig_severity = px.scatter(
+                            filtered_events,
+                            x='year',
+                            y='damage',
+                            color='event_type',
+                            size='severity',
+                            title=f"Historical Event Severity Trends - {region.title()}",
+                            labels={'damage': 'Damage ($B)', 'year': 'Year', 'severity': 'Severity'}
+                        )
+                        st.plotly_chart(fig_severity, use_container_width=True)
     
     # Portfolio Analysis
     st.markdown('<div class="section-header">📈 Portfolio Analytics</div>', unsafe_allow_html=True)
