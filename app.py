@@ -738,6 +738,38 @@ def main():
         Always consult with qualified actuaries and risk professionals for real-world applications.
         """)
     
+    # Glossary for Non-Industry Users
+    with st.expander("📚 Glossary - Understanding Reinsurance Terms", expanded=False):
+        st.markdown("""
+        **🏢 What is Reinsurance?**
+        Reinsurance is "insurance for insurance companies." When your home insurance company faces huge losses from a hurricane, they buy reinsurance to help cover those losses. Think of it as insurance companies protecting themselves against catastrophic events.
+        
+        **📊 Understanding Risk Metrics:**
+        - **VaR (Value at Risk)**: "What's the worst loss we could face?" - The maximum loss with 99% confidence (only 1% chance of exceeding)
+        - **Expected Shortfall**: "How bad could it get in the worst case?" - Average loss when things go really wrong
+        - **PML (Probable Maximum Loss)**: "What's our worst-case scenario?" - The biggest loss we could reasonably expect
+        - **AAL (Average Annual Loss)**: "What do we expect to lose each year?" - Typical annual losses from catastrophes
+        
+        **🌪️ Understanding Perils:**
+        - **Hurricane**: Tropical storms with high winds, storm surge, and flooding
+        - **Earthquake**: Ground shaking that can damage buildings and infrastructure
+        - **Fire Following**: Secondary fires that start after earthquakes or storms (gas leaks, electrical fires)
+        - **SCS (Severe Convective Storm)**: Severe thunderstorms with hail, tornadoes, and straight-line winds
+        - **Wildfire**: Uncontrolled fires that can burn homes and businesses
+        
+        **🏠 Property Risk Factors:**
+        - **Property Age**: Older buildings are more vulnerable to damage
+        - **Construction Quality**: Better-built buildings survive disasters better
+        - **Distance to Coast**: Closer to ocean = higher hurricane risk
+        - **Elevation**: Lower elevation = higher flood risk
+        
+        **💼 Business Terms:**
+        - **Attachment Point**: The loss amount where reinsurance coverage kicks in
+        - **Cede Rate**: The percentage of losses that get transferred to reinsurers
+        - **Portfolio**: A collection of insurance policies being analyzed
+        - **Loading Factor**: Extra cost added to cover expenses and profit
+        """)
+    
     # Sidebar controls
     st.sidebar.header("Portfolio Configuration")
     
@@ -770,34 +802,6 @@ def main():
         - Cede Rate: Percentage ceded to reinsurer
         """)
     
-    # Glossary for Non-Industry Users
-    with st.sidebar.expander("📚 Glossary - Click to expand", expanded=False):
-        st.markdown("""
-        **🏢 Reinsurance Terms:**
-        - **Reinsurance**: Insurance for insurance companies
-        - **Cede**: Transfer risk to another company
-        - **Attachment Point**: Loss threshold where coverage begins
-        - **Portfolio**: Collection of insurance policies
-        
-        **📊 Risk Metrics:**
-        - **VaR (Value at Risk)**: Worst-case loss (99% confidence)
-        - **Expected Shortfall**: Average loss in worst scenarios
-        - **PML**: Probable Maximum Loss
-        - **AAL**: Average Annual Loss
-        
-        **🌪️ Perils:**
-        - **Hurricane**: Tropical storms with high winds
-        - **Earthquake**: Ground shaking from tectonic activity
-        - **Fire Following**: Fires caused by other disasters
-        - **SCS**: Severe storms with hail/tornadoes
-        - **Wildfire**: Uncontrolled fires in vegetation
-        
-        **🏠 Property Factors:**
-        - **Property Age**: Years since construction
-        - **Construction Quality**: Building standards/materials
-        - **Distance to Coast**: Miles from ocean (hurricane risk)
-        - **Elevation**: Height above sea level (flood risk)
-        """)
     
     attachment_point = st.sidebar.slider(
         "Attachment Point ($M)", 
