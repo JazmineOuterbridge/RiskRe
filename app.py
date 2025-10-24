@@ -115,7 +115,7 @@ def create_demo_cat_data():
     np.random.seed(42)
     n_samples = 1000
     
-    # Generate demo CAT insurance data
+    # Generate demo CAT insurance data with realistic values
     df = pd.DataFrame({
         'property_age': np.random.normal(25, 15, n_samples).clip(1, 100),
         'building_type': np.random.choice(['single_family', 'multi_family', 'commercial', 'industrial'], n_samples),
@@ -124,9 +124,11 @@ def create_demo_cat_data():
         'distance_to_coast': np.random.exponential(50, n_samples).clip(0, 200),
         'elevation': np.random.normal(100, 200, n_samples).clip(0, 2000),
         'region': np.random.choice(['northeast', 'southeast', 'northwest', 'southwest', 'south'], n_samples),
-        'charges': np.random.lognormal(8, 1, n_samples) * 1000,  # Base CAT charges
         'property_value': np.random.normal(300000, 150000, n_samples).clip(50000, 2000000)
     })
+    
+    # Calculate realistic CAT charges based on property value and risk
+    df['charges'] = df['property_value'] * 0.02  # 2% of property value for CAT insurance
     
     # Calculate risk score
     df['risk_score'] = (
@@ -840,8 +842,19 @@ def main():
     }
     regional_mult = regional_multipliers.get(region, 1.0)
     
-    # Scale by portfolio size and regional risk
-    predicted_loss = predicted_loss_rate * (portfolio_size / 50) * regional_mult * 1000000
+    # Scale by portfolio size and regional risk with better base values
+    base_loss = max(predicted_loss_rate, 0.1)  # Ensure minimum base loss
+    
+    # Calculate base predicted loss
+    predicted_loss = base_loss * (portfolio_size / 100) * regional_mult * 1000000
+    
+    # Apply climate amplification
+    climate_multiplier = 1 + (climate_amp / 100)
+    predicted_loss = predicted_loss * climate_multiplier
+    
+    # Ensure we have meaningful results - minimum values for demo
+    if predicted_loss < 100000:  # Less than $100K
+        predicted_loss = portfolio_size * 1000000 * 0.02 * regional_mult * climate_multiplier
     
     # Monte Carlo simulation
     simulated_losses, var_99, es_99, pml, aal, tvar, confidence_interval = monte_carlo_simulation(predicted_loss)
