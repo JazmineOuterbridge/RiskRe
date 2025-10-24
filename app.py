@@ -1123,23 +1123,74 @@ def main():
                         
                         # Show individual events
                         st.markdown("#### Individual Events")
-                        display_events = recent_events[['name', 'year', 'event_type', 'damage', 'severity', 'location']].copy()
-                        display_events.columns = ['Event Name', 'Year', 'Type', 'Damage ($B)', 'Severity', 'Location']
-                        display_events = display_events.sort_values(['year', 'damage'], ascending=[False, False])
-                        
-                        st.dataframe(display_events, use_container_width=True)
+                        try:
+                            # Check if required columns exist
+                            required_cols = ['name', 'year', 'event_type', 'damage', 'severity', 'location']
+                            available_cols = [col for col in required_cols if col in recent_events.columns]
+                            
+                            if available_cols:
+                                display_events = recent_events[available_cols].copy()
+                                
+                                # Rename columns for display
+                                column_mapping = {
+                                    'name': 'Event Name',
+                                    'year': 'Year', 
+                                    'event_type': 'Type',
+                                    'damage': 'Damage ($B)',
+                                    'severity': 'Severity',
+                                    'location': 'Location'
+                                }
+                                
+                                # Only rename columns that exist
+                                for old_col, new_col in column_mapping.items():
+                                    if old_col in display_events.columns:
+                                        display_events = display_events.rename(columns={old_col: new_col})
+                                
+                                # Sort by available columns
+                                sort_cols = []
+                                if 'Year' in display_events.columns:
+                                    sort_cols.append('Year')
+                                if 'Damage ($B)' in display_events.columns:
+                                    sort_cols.append('Damage ($B)')
+                                
+                                if sort_cols:
+                                    display_events = display_events.sort_values(sort_cols, ascending=[False, False])
+                                
+                                st.dataframe(display_events, use_container_width=True)
+                            else:
+                                st.warning("No valid columns found for event display")
+                                
+                        except Exception as e:
+                            st.error(f"Error displaying events: {str(e)}")
+                            # Show raw data as fallback
+                            st.dataframe(recent_events, use_container_width=True)
                         
                         # Historical context
-                        total_historical_damage = recent_events['damage'].sum()
-                        avg_annual_damage = recent_events.groupby('year')['damage'].sum().mean()
-                        
-                        st.info(f"""
-                        **Historical Context for {region.title()}:**
-                        - **Total Damage (2020-2024):** ${total_historical_damage:.1f}B
-                        - **Average Annual Damage:** ${avg_annual_damage:.1f}B
-                        - **Events Analyzed:** {len(recent_events)} recent events
-                        - **Risk Validation:** Historical data supports current risk assessment
-                        """)
+                        try:
+                            if 'damage' in recent_events.columns:
+                                total_historical_damage = recent_events['damage'].sum()
+                            else:
+                                total_historical_damage = 0
+                            
+                            if 'year' in recent_events.columns and 'damage' in recent_events.columns:
+                                avg_annual_damage = recent_events.groupby('year')['damage'].sum().mean()
+                            else:
+                                avg_annual_damage = 0
+                            
+                            st.info(f"""
+                            **Historical Context for {region.title()}:**
+                            - **Total Damage (2020-2024):** ${total_historical_damage:.1f}B
+                            - **Average Annual Damage:** ${avg_annual_damage:.1f}B
+                            - **Events Analyzed:** {len(recent_events)} recent events
+                            - **Risk Validation:** Historical data supports current risk assessment
+                            """)
+                        except Exception as e:
+                            st.warning(f"Could not calculate historical context: {str(e)}")
+                            st.info(f"""
+                            **Historical Context for {region.title()}:**
+                            - **Events Analyzed:** {len(recent_events)} recent events
+                            - **Risk Validation:** Historical data supports current risk assessment
+                            """)
                     else:
                         st.info(f"No recent {region.title()} events found for selected perils (2020-2024)")
                 else:
@@ -1271,41 +1322,60 @@ def main():
                     col1, col2 = st.columns(2)
                     
                     with col1:
-                        # Historical damage by year
-                        yearly_damage = filtered_events.groupby('year')['damage'].sum().reset_index()
-                        fig_yearly = px.bar(
-                            yearly_damage, 
-                            x='year', 
-                            y='damage',
-                            title=f"Historical Damage by Year - {region.title()}",
-                            labels={'damage': 'Damage ($B)', 'year': 'Year'}
-                        )
-                        fig_yearly.update_layout(showlegend=False)
-                        st.plotly_chart(fig_yearly, use_container_width=True)
+                        try:
+                            # Historical damage by year
+                            if 'year' in filtered_events.columns and 'damage' in filtered_events.columns:
+                                yearly_damage = filtered_events.groupby('year')['damage'].sum().reset_index()
+                                fig_yearly = px.bar(
+                                    yearly_damage, 
+                                    x='year', 
+                                    y='damage',
+                                    title=f"Historical Damage by Year - {region.title()}",
+                                    labels={'damage': 'Damage ($B)', 'year': 'Year'}
+                                )
+                                fig_yearly.update_layout(showlegend=False)
+                                st.plotly_chart(fig_yearly, use_container_width=True)
+                            else:
+                                st.warning("Missing 'year' or 'damage' columns for yearly damage chart")
+                        except Exception as e:
+                            st.error(f"Error creating yearly damage chart: {str(e)}")
                     
                     with col2:
-                        # Damage by event type
-                        event_type_damage = filtered_events.groupby('event_type')['damage'].sum().reset_index()
-                        fig_type = px.pie(
-                            event_type_damage,
-                            values='damage',
-                            names='event_type',
-                            title=f"Damage by Event Type - {region.title()}"
-                        )
-                        st.plotly_chart(fig_type, use_container_width=True)
+                        try:
+                            # Damage by event type
+                            if 'event_type' in filtered_events.columns and 'damage' in filtered_events.columns:
+                                event_type_damage = filtered_events.groupby('event_type')['damage'].sum().reset_index()
+                                fig_type = px.pie(
+                                    event_type_damage,
+                                    values='damage',
+                                    names='event_type',
+                                    title=f"Damage by Event Type - {region.title()}"
+                                )
+                                st.plotly_chart(fig_type, use_container_width=True)
+                            else:
+                                st.warning("Missing 'event_type' or 'damage' columns for event type chart")
+                        except Exception as e:
+                            st.error(f"Error creating event type chart: {str(e)}")
                     
                     # Historical severity trends
-                    if len(filtered_events) > 1:
-                        fig_severity = px.scatter(
-                            filtered_events,
-                            x='year',
-                            y='damage',
-                            color='event_type',
-                            size='severity',
-                            title=f"Historical Event Severity Trends - {region.title()}",
-                            labels={'damage': 'Damage ($B)', 'year': 'Year', 'severity': 'Severity'}
-                        )
-                        st.plotly_chart(fig_severity, use_container_width=True)
+                    try:
+                        if len(filtered_events) > 1:
+                            required_cols = ['year', 'damage', 'event_type', 'severity']
+                            if all(col in filtered_events.columns for col in required_cols):
+                                fig_severity = px.scatter(
+                                    filtered_events,
+                                    x='year',
+                                    y='damage',
+                                    color='event_type',
+                                    size='severity',
+                                    title=f"Historical Event Severity Trends - {region.title()}",
+                                    labels={'damage': 'Damage ($B)', 'year': 'Year', 'severity': 'Severity'}
+                                )
+                                st.plotly_chart(fig_severity, use_container_width=True)
+                            else:
+                                st.warning("Missing required columns for severity trends chart")
+                    except Exception as e:
+                        st.error(f"Error creating severity trends chart: {str(e)}")
     
     # Portfolio Analysis
     st.markdown('<div class="section-header">📈 Portfolio Analytics</div>', unsafe_allow_html=True)
