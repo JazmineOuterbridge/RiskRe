@@ -1,0 +1,6 @@
+name,year,event_type,region,damage,location,severity,affected_population
+Oklahoma Tornado,2023,scs,south,0.3,Oklahoma,85.0,5000
+Kentucky Tornado,2022,scs,south,3.9,Kentucky,90.0,25000
+Texas Freeze,2021,scs,south,2.0,Texas,50.0,100000
+Iowa Derecho,2020,scs,northwest,7.5,Iowa,100.0,120000
+Louisiana Floods,2016,scs,south,1.0,Louisiana,60.0,40000

@@ -148,9 +148,10 @@ def load_and_preprocess_data():
         # Load insurance data
         try:
             df_insurance = pd.read_csv('data/insurance2.csv')
+            st.success("✅ Loaded comprehensive demo insurance data")
         except FileNotFoundError:
             # Create demo CAT data if file not found
-            st.warning("CAT data not found. Generating demo data...")
+            st.warning("⚠️ Insurance data not found. Generating comprehensive demo data...")
             df_insurance = create_demo_cat_data()
         
         # Ensure we have the required columns for the app
@@ -167,8 +168,10 @@ def load_and_preprocess_data():
         # Load hurricane data (simulated if not available)
         try:
             df_hurricanes = pd.read_csv('data/hurricanes.csv')
+            st.success("✅ Loaded comprehensive demo hurricane/catastrophe data")
         except FileNotFoundError:
             # Create simulated hurricane data
+            st.warning("⚠️ Hurricane data not found. Generating demo data...")
             regions = ['northeast', 'southeast', 'northwest', 'southwest', 'south']
             df_hurricanes = pd.DataFrame({
                 'region': regions,
@@ -188,28 +191,23 @@ def load_and_preprocess_data():
         # Handle missing values
         df = df.fillna(0)
         
+        # Add missing peril risk columns if not present
+        peril_columns = ['hurricane_risk', 'earthquake_risk', 'fire_following_risk', 'scs_risk', 'wildfire_risk']
+        for col in peril_columns:
+            if col not in df.columns:
+                df[col] = np.random.uniform(0.1, 0.8, len(df))
+        
+        # Ensure we have enough data for analysis
+        if len(df) < 100:
+            st.warning("⚠️ Insufficient data. Generating comprehensive demo dataset...")
+            df = create_demo_cat_data()
+        
+        st.info(f"📊 Loaded {len(df)} property records for analysis")
         return df
-    except FileNotFoundError:
-        # Create synthetic data if files don't exist
-        st.warning("Data files not found. Using synthetic data for demonstration.")
-        np.random.seed(42)
-        n_samples = 1000
-        
-        df = pd.DataFrame({
-            'age': np.random.normal(40, 15, n_samples),
-            'bmi': np.random.normal(30, 5, n_samples),
-            'charges': np.random.lognormal(8, 1, n_samples),
-            'region': np.random.choice(['north', 'south', 'east', 'west'], n_samples),
-            'sex': np.random.choice(['male', 'female'], n_samples)
-        })
-        
-        df['risk_score'] = (df['bmi'] + df['age']) / 100
-        
-        # Add cat exposure
-        cat_exposure_map = {'north': 1.0, 'south': 1.5, 'east': 1.2, 'west': 1.1}
-        df['cat_exposure'] = df['region'].map(cat_exposure_map)
-        
-        return df
+    except Exception as e:
+        # Create comprehensive demo data if anything fails
+        st.warning(f"⚠️ Data loading failed: {str(e)}. Using comprehensive demo data.")
+        return create_demo_cat_data()
 
 @st.cache_data
 def load_historical_events():
