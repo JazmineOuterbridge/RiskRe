@@ -523,6 +523,8 @@ def create_shap_plot(model, X_sample, feature_names):
                     # Multi-class classification
                     shap_values = np.array(shap_values)
                 
+                st.info(f"🔍 SHAP Debug: shap_values shape: {shap_values.shape}, feature_names length: {len(feature_names)}")
+                
                 if len(shap_values.shape) > 2:
                     # For multi-class, take mean across classes
                     mean_shap = np.abs(shap_values).mean(axis=(0, 1))
@@ -530,16 +532,22 @@ def create_shap_plot(model, X_sample, feature_names):
                     # For regression or single class
                     mean_shap = np.abs(shap_values).mean(0)
                 
+                st.info(f"🔍 SHAP Debug: mean_shap length: {len(mean_shap)}")
+                
                 # Ensure we have the right number of values
                 if len(mean_shap) != len(feature_names):
                     st.warning(f"SHAP values length {len(mean_shap)} doesn't match features {len(feature_names)}. Adjusting feature names.")
                     # Truncate or pad feature names to match SHAP values
                     if len(mean_shap) < len(feature_names):
-                        feature_names = feature_names[:len(mean_shap)]
+                        # Keep the most important features (last ones in the list are usually most important)
+                        feature_names = feature_names[-len(mean_shap):]
                     else:
                         # Pad with generic names if SHAP values are longer
                         while len(feature_names) < len(mean_shap):
                             feature_names.append(f"feature_{len(feature_names)}")
+                    
+                    # Ensure we have exactly the right number of feature names
+                    feature_names = feature_names[:len(mean_shap)]
                 
             except Exception as shap_error:
                 st.warning(f"TreeExplainer failed: {str(shap_error)}. Trying KernelExplainer...")
@@ -561,21 +569,29 @@ def create_shap_plot(model, X_sample, feature_names):
                 if isinstance(shap_values, list):
                     shap_values = np.array(shap_values)
                 
+                st.info(f"🔍 SHAP Debug (Kernel): shap_values shape: {shap_values.shape}, feature_names length: {len(feature_names)}")
+                
                 if len(shap_values.shape) > 2:
                     mean_shap = np.abs(shap_values).mean(axis=(0, 1))
                 else:
                     mean_shap = np.abs(shap_values).mean(0)
+                
+                st.info(f"🔍 SHAP Debug (Kernel): mean_shap length: {len(mean_shap)}")
                 
                 # Ensure we have the right number of values
                 if len(mean_shap) != len(feature_names):
                     st.warning(f"SHAP values length {len(mean_shap)} doesn't match features {len(feature_names)}. Adjusting feature names.")
                     # Truncate or pad feature names to match SHAP values
                     if len(mean_shap) < len(feature_names):
-                        feature_names = feature_names[:len(mean_shap)]
+                        # Keep the most important features (last ones in the list are usually most important)
+                        feature_names = feature_names[-len(mean_shap):]
                     else:
                         # Pad with generic names if SHAP values are longer
                         while len(feature_names) < len(mean_shap):
                             feature_names.append(f"feature_{len(feature_names)}")
+                    
+                    # Ensure we have exactly the right number of feature names
+                    feature_names = feature_names[:len(mean_shap)]
                 
             except Exception as kernel_error:
                 st.warning(f"KernelExplainer failed: {str(kernel_error)}. Falling back to model coefficients.")
