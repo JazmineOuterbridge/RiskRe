@@ -778,8 +778,26 @@ def main():
         help="💡 Cede Rate: The percentage of losses above the attachment point that are transferred to the reinsurer. 80% means the reinsurer covers 80% of losses above the threshold."
     )
     
+    # Peril Selection
+    st.sidebar.markdown("### Peril Selection")
+    st.sidebar.markdown("Select which perils to include in the risk analysis:")
+    
+    hurricane_risk = st.sidebar.checkbox("🌪️ Hurricane", value=True, help="Wind, storm surge, and flood damage from hurricanes")
+    earthquake_risk = st.sidebar.checkbox("🏔️ Earthquake", value=True, help="Ground shaking, liquefaction, and structural damage")
+    fire_following_risk = st.sidebar.checkbox("🔥 Fire Following", value=True, help="Secondary fires after earthquakes or storms")
+    scs_risk = st.sidebar.checkbox("⛈️ SCS (Severe Convective Storm)", value=True, help="Hail, tornadoes, and straight-line winds")
+    wildfire_risk = st.sidebar.checkbox("🔥 Wildfire", value=True, help="Direct fire damage and smoke damage")
+    
+    # Calculate total peril count
+    selected_perils = [hurricane_risk, earthquake_risk, fire_following_risk, scs_risk, wildfire_risk]
+    peril_count = sum(selected_perils)
+    
+    if peril_count == 0:
+        st.sidebar.error("⚠️ Please select at least one peril for analysis")
+        return
+    
     # Create a unique key for this configuration
-    config_key = f"{attachment_point}_{portfolio_size}_{region}_{climate_amp}_{cede_rate}"
+    config_key = f"{attachment_point}_{portfolio_size}_{region}_{climate_amp}_{cede_rate}_{peril_count}_{selected_perils}"
     
     # Check if we need to run analysis
     if st.session_state.get('last_config') != config_key:
@@ -842,11 +860,24 @@ def main():
     }
     regional_mult = regional_multipliers.get(region, 1.0)
     
+    # Calculate peril-specific multipliers
+    peril_multipliers = {
+        'hurricane': 1.0 if hurricane_risk else 0.0,
+        'earthquake': 1.0 if earthquake_risk else 0.0,
+        'fire_following': 1.0 if fire_following_risk else 0.0,
+        'scs': 1.0 if scs_risk else 0.0,
+        'wildfire': 1.0 if wildfire_risk else 0.0
+    }
+    
+    # Calculate total peril exposure
+    total_peril_exposure = sum(peril_multipliers.values())
+    peril_multiplier = max(total_peril_exposure / 5.0, 0.2)  # Minimum 20% exposure
+    
     # Scale by portfolio size and regional risk with better base values
     base_loss = max(predicted_loss_rate, 0.1)  # Ensure minimum base loss
     
     # Calculate base predicted loss
-    predicted_loss = base_loss * (portfolio_size / 100) * regional_mult * 1000000
+    predicted_loss = base_loss * (portfolio_size / 100) * regional_mult * peril_multiplier * 1000000
     
     # Apply climate amplification
     climate_multiplier = 1 + (climate_amp / 100)
@@ -854,7 +885,7 @@ def main():
     
     # Ensure we have meaningful results - minimum values for demo
     if predicted_loss < 100000:  # Less than $100K
-        predicted_loss = portfolio_size * 1000000 * 0.02 * regional_mult * climate_multiplier
+        predicted_loss = portfolio_size * 1000000 * 0.02 * regional_mult * peril_multiplier * climate_multiplier
     
     # Monte Carlo simulation
     simulated_losses, var_99, es_99, pml, aal, tvar, confidence_interval = monte_carlo_simulation(predicted_loss)
@@ -885,6 +916,17 @@ def main():
         st.metric("Loading Factor", f"{loading_factor:.1f}x")
         st.markdown(f'<div class="risk-indicator">{risk_level}</div>', unsafe_allow_html=True)
     
+    # Peril summary
+    selected_peril_names = []
+    if hurricane_risk: selected_peril_names.append("Hurricane")
+    if earthquake_risk: selected_peril_names.append("Earthquake")
+    if fire_following_risk: selected_peril_names.append("Fire Following")
+    if scs_risk: selected_peril_names.append("SCS")
+    if wildfire_risk: selected_peril_names.append("Wildfire")
+    
+    st.markdown("### Selected Perils")
+    st.info(f"**Analyzing {peril_count} perils:** {', '.join(selected_peril_names)}")
+    
     # Risk summary
     st.markdown("### Risk Assessment Summary")
     st.info(f"""
@@ -894,6 +936,7 @@ def main():
     - ES: ${es_99/1000000:.1f}M
     - Suggested premium: ${optimal_premium/1000000:.1f}M ({loading_factor:.0%} loading)
     - Risk Level: {risk_level}
+    - Peril Exposure: {peril_multiplier:.1%} of total risk
     """)
     
     # Export and Share Section
