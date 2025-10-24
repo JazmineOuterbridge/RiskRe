@@ -738,19 +738,24 @@ def main():
         Always consult with qualified actuaries and risk professionals for real-world applications.
         """)
     
-    # Glossary for Non-Industry Users
-    with st.expander("📚 Glossary - Understanding Reinsurance Terms", expanded=False):
+    # Comprehensive Glossary for All Users
+    with st.expander("📚 Complete Glossary - Understanding Everything in ReRisk AI", expanded=False):
         st.markdown("""
-        **🏢 What is Reinsurance?**
-        Reinsurance is "insurance for insurance companies." When your home insurance company faces huge losses from a hurricane, they buy reinsurance to help cover those losses. Think of it as insurance companies protecting themselves against catastrophic events.
+        **🏢 Reinsurance Fundamentals:**
+        - **Reinsurance**: Insurance for insurance companies - protection against catastrophic losses
+        - **Cede**: Transfer risk to another company (reinsurer)
+        - **Attachment Point**: Loss threshold where reinsurance coverage begins
+        - **Portfolio**: Collection of insurance policies being analyzed
+        - **Loading Factor**: Extra cost added to cover expenses and profit (e.g., 1.6x = 60% loading)
         
-        **📊 Understanding Risk Metrics:**
-        - **VaR (Value at Risk)**: "What's the worst loss we could face?" - The maximum loss with 99% confidence (only 1% chance of exceeding)
-        - **Expected Shortfall**: "How bad could it get in the worst case?" - Average loss when things go really wrong
-        - **PML (Probable Maximum Loss)**: "What's our worst-case scenario?" - The biggest loss we could reasonably expect
+        **📊 Risk Metrics & Calculations:**
+        - **VaR (Value at Risk)**: "What's the worst loss we could face?" - Maximum loss with 99% confidence (only 1% chance of exceeding)
+        - **Expected Shortfall (ES)**: "How bad could it get in the worst case?" - Average loss when things go really wrong
+        - **PML (Probable Maximum Loss)**: "What's our worst-case scenario?" - Biggest loss we could reasonably expect
         - **AAL (Average Annual Loss)**: "What do we expect to lose each year?" - Typical annual losses from catastrophes
+        - **TVaR (Tail Value at Risk)**: Same as Expected Shortfall - average loss above VaR threshold
         
-        **🌪️ Understanding Perils:**
+        **🌪️ Perils (Natural Disasters):**
         - **Hurricane**: Tropical storms with high winds, storm surge, and flooding
         - **Earthquake**: Ground shaking that can damage buildings and infrastructure
         - **Fire Following**: Secondary fires that start after earthquakes or storms (gas leaks, electrical fires)
@@ -758,16 +763,64 @@ def main():
         - **Wildfire**: Uncontrolled fires that can burn homes and businesses
         
         **🏠 Property Risk Factors:**
-        - **Property Age**: Older buildings are more vulnerable to damage
-        - **Construction Quality**: Better-built buildings survive disasters better
-        - **Distance to Coast**: Closer to ocean = higher hurricane risk
-        - **Elevation**: Lower elevation = higher flood risk
+        - **Property Age**: Years since construction - older buildings are more vulnerable
+        - **Construction Quality**: Building standards and materials (0-1 scale, higher = better)
+        - **Distance to Coast**: Miles from ocean - closer = higher hurricane risk
+        - **Elevation**: Height above sea level - lower = higher flood risk
+        - **Stories**: Number of floors - affects wind damage susceptibility
+        - **Building Type**: Single family, multi-family, commercial, industrial - different vulnerabilities
         
-        **💼 Business Terms:**
-        - **Attachment Point**: The loss amount where reinsurance coverage kicks in
-        - **Cede Rate**: The percentage of losses that get transferred to reinsurers
-        - **Portfolio**: A collection of insurance policies being analyzed
-        - **Loading Factor**: Extra cost added to cover expenses and profit
+        **🤖 Machine Learning & Analytics:**
+        - **XGBoost**: Advanced machine learning algorithm for classification and regression
+        - **Random Forest**: Ensemble learning method that combines multiple decision trees
+        - **Ensemble Methods**: Combining multiple models for better predictions
+        - **Hyperparameter Tuning**: Optimizing model settings for best performance
+        - **Cross-Validation**: Testing model performance on different data subsets
+        
+        **📈 SHAP Analysis:**
+        - **SHAP (SHapley Additive exPlanations)**: Method to explain how each factor contributes to predictions
+        - **Feature Importance**: Shows which factors (age, location, etc.) matter most for risk
+        - **Model Explainability**: Understanding why the AI made specific predictions
+        - **Transparency**: Making AI decisions understandable to humans
+        
+        **🎲 Monte Carlo Simulation:**
+        - **Monte Carlo**: Running thousands of random scenarios to model uncertainty
+        - **1,000 Simulations**: Testing 1,000 different possible outcomes
+        - **Risk Distribution**: Showing the range of possible losses
+        - **Uncertainty Bands**: Confidence intervals around predictions
+        - **Fat-Tail Distributions**: Modeling extreme events (like major catastrophes)
+        
+        **📊 Portfolio Analytics:**
+        - **Risk Concentration**: How much of portfolio is at risk in one area
+        - **Diversification Ratio**: How well risk is spread across different areas
+        - **Expected Return**: Profit margin from reinsurance premiums
+        - **Risk-Adjusted Return**: Return per unit of risk taken
+        
+        **🌍 Geographic & Climate:**
+        - **Regional Multipliers**: Risk factors that vary by location (South = 1.5x, Northeast = 1.0x)
+        - **Climate Amplification**: How climate change increases risk (e.g., 50% = 1.5x multiplier)
+        - **Geographic Heatmap**: Visual map showing risk concentration by location
+        - **Storm Surge**: Ocean water pushed ashore by hurricane winds
+        
+        **💼 Business & Financial:**
+        - **Cede Rate**: Percentage of losses transferred to reinsurers (80% = reinsurer covers 80%)
+        - **Premium**: Cost of reinsurance coverage
+        - **Expense Ratio**: Cost of doing business (typically 30%)
+        - **Profit Margin**: Target profit on reinsurance (typically 30%)
+        - **Loading**: Total markup on pure risk cost (expense + profit)
+        
+        **📈 Model Performance:**
+        - **AUC (Area Under Curve)**: How well the model distinguishes high vs. low risk (0-1, higher = better)
+        - **MSE (Mean Squared Error)**: How accurate the loss predictions are (lower = better)
+        - **ROC Curve**: Graph showing model's ability to classify risk correctly
+        - **Confidence Interval**: Range of values where true result likely falls
+        
+        **🔧 Technical Terms:**
+        - **Feature Engineering**: Creating useful inputs for machine learning models
+        - **Data Preprocessing**: Cleaning and preparing data for analysis
+        - **Model Training**: Teaching the AI to recognize patterns in data
+        - **Prediction**: Using trained AI to estimate future losses
+        - **Simulation**: Running many scenarios to understand risk range
         """)
     
     # Sidebar controls
