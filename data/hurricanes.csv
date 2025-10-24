@@ -1,6 +1,6 @@
-region,cat_exposure,hurricane_frequency,avg_intensity,flood_risk,wind_risk,earthquake_risk,seismic_hazard,tornado_risk,wildfire_risk,storm_surge_risk
-northeast,1.0,0.1,2.5,0.3,0.2,0.1,0.05,0.3,0.1,0.2
-southeast,1.4,0.7,3.6,0.8,0.9,0.2,0.1,0.6,0.3,0.9
-northwest,1.1,0.2,2.8,0.4,0.3,0.8,0.9,0.1,0.2,0.1
-southwest,1.2,0.3,3.0,0.5,0.4,0.6,0.7,0.4,0.8,0.3
-south,1.5,0.8,3.8,0.9,0.95,0.3,0.2,0.5,0.4,0.95
+region,cat_exposure,hurricane_frequency,avg_intensity,hurricane_risk,earthquake_risk,seismic_hazard,fire_following_risk,scs_risk,wildfire_risk,storm_surge_risk
+northeast,1.0,0.1,2.5,0.2,0.1,0.05,0.3,0.4,0.1,0.2
+southeast,1.4,0.7,3.6,0.9,0.2,0.1,0.6,0.8,0.3,0.9
+northwest,1.1,0.2,2.8,0.3,0.8,0.9,0.4,0.2,0.2,0.1
+southwest,1.2,0.3,3.0,0.4,0.6,0.7,0.5,0.6,0.8,0.3
+south,1.5,0.8,3.8,0.95,0.3,0.2,0.7,0.9,0.4,0.95

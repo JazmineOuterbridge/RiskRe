@@ -133,17 +133,17 @@ def scrape_hurricane_data():
     """Scrape and generate comprehensive hurricane/catastrophe data"""
     print("Scraping hurricane/catastrophe data...")
     
-    # Enhanced catastrophe exposure data with multiple perils
+    # Enhanced catastrophe exposure data with proper reinsurance perils
     hurricane_data = {
         'region': ['northeast', 'southeast', 'northwest', 'southwest', 'south'],
         'cat_exposure': [1.0, 1.4, 1.1, 1.2, 1.5],  # South has highest exposure
         'hurricane_frequency': [0.1, 0.7, 0.2, 0.3, 0.8],  # Annual frequency
         'avg_intensity': [2.5, 3.6, 2.8, 3.0, 3.8],  # Average category
-        'flood_risk': [0.3, 0.8, 0.4, 0.5, 0.9],  # Flood risk factor
-        'wind_risk': [0.2, 0.9, 0.3, 0.4, 0.95],  # Wind risk factor
+        'hurricane_risk': [0.2, 0.9, 0.3, 0.4, 0.95],  # Hurricane risk factor
         'earthquake_risk': [0.1, 0.2, 0.8, 0.6, 0.3],  # Earthquake risk (West Coast)
         'seismic_hazard': [0.05, 0.1, 0.9, 0.7, 0.2],  # Seismic hazard score
-        'tornado_risk': [0.3, 0.6, 0.1, 0.4, 0.5],  # Tornado risk factor
+        'fire_following_risk': [0.3, 0.6, 0.4, 0.5, 0.7],  # Fire following earthquake/storm
+        'scs_risk': [0.4, 0.8, 0.2, 0.6, 0.9],  # Severe Convective Storm risk
         'wildfire_risk': [0.1, 0.3, 0.2, 0.8, 0.4],  # Wildfire risk factor
         'storm_surge_risk': [0.2, 0.9, 0.1, 0.3, 0.95]  # Storm surge risk
     }
@@ -157,9 +157,9 @@ def scrape_historical_events():
     """Generate historical catastrophe events data"""
     print("Generating historical claims data...")
     
-    # Historical catastrophe events
+    # Historical catastrophe events with proper reinsurance perils
     events = []
-    event_types = ['hurricane', 'earthquake', 'flood', 'tornado', 'wildfire']
+    event_types = ['hurricane', 'earthquake', 'fire_following', 'scs', 'wildfire']
     
     for year in range(2015, 2024):
         for event_type in event_types:

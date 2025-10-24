@@ -580,7 +580,7 @@ def main():
         - **Geographic Analysis**: Interactive maps showing regional risk exposure
         - **Model Explainability**: SHAP values for transparent decision-making
         - **Climate Scenarios**: What-if analysis for climate change impacts
-        - **Multi-Peril Risk**: Hurricane, earthquake, flood, tornado, wildfire modeling
+        - **Multi-Peril Risk**: Hurricane, earthquake, fire following, SCS (severe convective storm), wildfire modeling
         - **Portfolio Analytics**: Risk concentration, diversification, and return analysis
         - **Export Capabilities**: PDF reports and CSV data downloads
         
@@ -633,6 +633,13 @@ def main():
         - **Northwest**: Earthquake risk (0.8x multiplier)
         - **Northeast**: Lower risk (1.0x multiplier)
         - **Southwest**: Moderate risk (1.2x multiplier)
+        
+        **Peril-Specific Modeling**:
+        - **Hurricane**: Wind, storm surge, and flood damage
+        - **Earthquake**: Ground shaking, liquefaction, and fire following
+        - **Fire Following**: Secondary fires after earthquakes or storms
+        - **SCS**: Severe convective storms, hail, and tornadoes
+        - **Wildfire**: Direct fire damage and smoke damage
         """)
         
         st.markdown("### Disclaimer:")
