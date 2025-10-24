@@ -396,10 +396,10 @@ def prepare_features(df, attachment_point, cede_rate=0.8):
         df['ceded_loss'] = df['ceded_loss'] * np.random.uniform(0.7, 1.5, len(df))
     
     # Add some extreme events for more realistic historical data
-    extreme_indices = np.random.choice(len(df), size=int(len(df) * 0.05), replace=False)
-    extreme_multipliers = np.random.uniform(2.0, 5.0, len(extreme_indices))
-    for i, idx in enumerate(extreme_indices):
-        df.at[idx, 'ceded_loss'] *= extreme_multipliers[i]
+    # Use vectorized operations to avoid indexing issues
+    extreme_mask = np.random.random(len(df)) < 0.05  # 5% of policies
+    extreme_multipliers = np.where(extreme_mask, np.random.uniform(2.0, 5.0, len(df)), 1.0)
+    df['ceded_loss'] = df['ceded_loss'] * extreme_multipliers
     
     # Historical data processed successfully - no need to show technical details to users
     
