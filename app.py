@@ -983,7 +983,7 @@ def main():
         - **VaR (99%)**: Maximum loss with 99% confidence (1% chance of exceeding)
         - **Expected Shortfall**: Average loss above VaR threshold
         - **Suggested Premium**: Optimal reinsurance premium with loading factors
-        - **Risk Level**: HIGH RISK (VaR > $5M) or LOW RISK (VaR ≤ $5M)
+        - **Risk Level**: Based on effective risk considering attachment point and cede rate
         """)
         
         st.markdown("### Methodology:")
@@ -1325,8 +1325,21 @@ def main():
     optimal_premium = calculate_reinsurance_premium(predicted_loss)
     loading_factor = optimal_premium / predicted_loss if predicted_loss > 0 else 1
     
-    # Risk indicator
-    risk_level = "HIGH RISK" if var_99 > 5000000 else "LOW RISK"
+    # Risk indicator - consider attachment point and cede rate
+    # With high attachment point and low cede rate, risk to reinsurer is lower
+    effective_risk = var_99 * (cede_rate / 100)  # Adjust for cede rate
+    attachment_impact = max(0, (attachment_point * 1000000 - var_99) / (attachment_point * 1000000))  # Higher attachment = lower risk
+    
+    # Risk is lower if attachment point is high relative to VaR
+    if var_99 < attachment_point * 1000000:
+        # VaR is below attachment point - very low risk
+        risk_level = "LOW RISK"
+    elif effective_risk < 1000000:  # Less than $1M effective risk
+        risk_level = "LOW RISK"
+    elif effective_risk < 5000000:  # Less than $5M effective risk
+        risk_level = "MODERATE RISK"
+    else:
+        risk_level = "HIGH RISK"
     
     # Main dashboard
     st.markdown('<div class="section-header">📊 Risk Assessment Dashboard</div>', unsafe_allow_html=True)
